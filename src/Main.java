@@ -1,8 +1,8 @@
-import javax.swing.*;
-
 public class Main {
-    public static void main(String[] args) {
-    //signUpForm.formShow();
-    startingPageForm.formShow();
-    }
+   public static void main(String[] args) {
+    signUpForm form = new signUpForm();
+ // new Calendar();
+   }
+
+
 }

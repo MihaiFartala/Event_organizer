@@ -1,9 +1,13 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -12,7 +16,7 @@ import java.util.regex.Pattern;
 
 public class signUpForm {
     private JButton signUpButton;
-    JPanel mainPanel;
+    public JPanel mainPanel;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JTextField emailField;
@@ -25,7 +29,20 @@ public class signUpForm {
     private JTextField loginUsername;
     private JPasswordField loginPassword;
 
+    loggedUser loggedUser;
+
     public signUpForm() {
+
+        JFrame frame = new JFrame("Event organizer");
+        frame.setContentPane(mainPanel);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setSize(430,400);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
+        frame.setVisible(true);
+
+
         signUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -38,6 +55,8 @@ public class signUpForm {
             public void actionPerformed(ActionEvent e) {
                 SignUpPanel.setVisible(false);
                 LoginPanel.setVisible(true);
+                loginUsername.setText("");
+                loginPassword.setText("");
             }
         });
         goToSignUpButton.addActionListener(new ActionListener() {
@@ -45,14 +64,67 @@ public class signUpForm {
             public void actionPerformed(ActionEvent e) {
                 LoginPanel.setVisible(false);
                 SignUpPanel.setVisible(true);
+                usernameField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                confirmPasswordField.setText("");
             }
         });
         LoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                login();
+                if(login()){
+                    frame.dispose();
+                    startingPageForm startingPage = new startingPageForm(loggedUser);
+                }
             }
         });
+
+
+        // Add ActionListener to input fields for handling Enter key press for signup form
+        KeyListener enterKeyListenerSignUp = new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    signUpButton.doClick();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        };
+
+        usernameField.addKeyListener(enterKeyListenerSignUp);
+        emailField.addKeyListener(enterKeyListenerSignUp);
+        passwordField.addKeyListener(enterKeyListenerSignUp);
+        confirmPasswordField.addKeyListener(enterKeyListenerSignUp);
+
+        // Add ActionListener to input fields for handling Enter key press for signup form
+        KeyListener enterKeyListenerLogin = new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    LoginButton.doClick();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        };
+
+        loginUsername.addKeyListener(enterKeyListenerLogin);
+        loginPassword.addKeyListener(enterKeyListenerLogin);
+
     }
 
     private void register()
@@ -72,7 +144,7 @@ public class signUpForm {
                 PreparedStatement preparedStatement = conn.prepareStatement(sql);
                 preparedStatement.setString(1,email);
                 preparedStatement.setString(2,username);
-                preparedStatement.setString(3,password);
+                preparedStatement.setString(3,PasswordHash.hashPassword(password));
 
                 preparedStatement.execute();
 
@@ -83,18 +155,12 @@ public class signUpForm {
             }
 
             JOptionPane.showMessageDialog(this.mainPanel, "New account created! Go to Login Page!","Success!", JOptionPane.INFORMATION_MESSAGE);
+            usernameField.setText("");
+            emailField.setText("");
+            passwordField.setText("");
+            confirmPasswordField.setText("");
+            usernameField.requestFocus();
         }
-    }
-
-    public static void formShow(){
-        JFrame frame = new JFrame("App");
-        frame.setContentPane( new signUpForm().mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setSize(430,400);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
-        frame.setVisible(true);
     }
 
     private void createUIComponents() {
@@ -156,6 +222,8 @@ public class signUpForm {
 
             while(rs.next()){
                 JOptionPane.showMessageDialog(this.mainPanel, "Username already taken!","Username error", JOptionPane.INFORMATION_MESSAGE);
+                usernameField.setText("");
+                usernameField.requestFocus();
                 return false;
             }
 
@@ -252,6 +320,8 @@ public class signUpForm {
 
             while(rs.next()){
                 JOptionPane.showMessageDialog(this.mainPanel, "Email is already in use!","Email error", JOptionPane.INFORMATION_MESSAGE);
+                emailField.setText("");
+                emailField.requestFocus();
                 return false;
             }
 
@@ -263,13 +333,17 @@ public class signUpForm {
         return true;
     }
 
-    private void login(){
+    private boolean login(){
         String username = loginUsername.getText();
         String password = String.valueOf(loginPassword.getPassword());
         if(checkUserAndPassword(username, password)){
-            System.out.println("LOGGED IN");
-
+            return true;
         }
+        return false;
+    }
+
+    private void close(){
+        mainPanel.setVisible(false);
     }
 
     private boolean checkUserAndPassword(String username, String password){
@@ -290,7 +364,7 @@ public class signUpForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT username, password from users " +
+            String sql = "SELECT * from users " +
                     "WHERE username = '" + username + "'";
 
             PreparedStatement preparedStatement = conn.prepareStatement(sql);
@@ -302,7 +376,10 @@ public class signUpForm {
                 String user = rs.getString("username");
                 String pass = rs.getString("password");
 
-                if(user.equals(username) && pass.equals(password)){
+                if(user.equals(username) && pass.equals(PasswordHash.hashPassword(password))){
+                    String email = rs.getString("email");
+                    int id  = rs.getInt("id");
+                    loggedUser = new loggedUser(user, pass, email, id);
                     return true;
                 }
                 else {
@@ -311,9 +388,14 @@ public class signUpForm {
                 }
             }
 
+
             stmt.close();
+
+            JOptionPane.showMessageDialog(this.mainPanel, "Incorrect username / password","Error!", JOptionPane.WARNING_MESSAGE);
+            return false;
         }catch(Exception e){
             e.printStackTrace();
+
         }
 
         return false;
