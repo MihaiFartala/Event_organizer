@@ -21,7 +21,7 @@
         </constraints>
         <properties>
           <background color="-1842469"/>
-          <visible value="false"/>
+          <visible value="true"/>
         </properties>
         <border type="none"/>
         <children>
@@ -50,7 +50,7 @@
               <opaque value="true"/>
               <selected value="false"/>
               <text value="Sign Up"/>
-              <visible value="false"/>
+              <visible value="true"/>
             </properties>
           </component>
           <component id="90752" class="javax.swing.JButton" binding="goToLoginButton">
@@ -233,7 +233,7 @@
         <properties>
           <background color="-1842469"/>
           <focusable value="true"/>
-          <visible value="true"/>
+          <visible value="false"/>
         </properties>
         <border type="none"/>
         <children>
