@@ -1,7 +1,11 @@
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class startingPageForm {
     private JButton logoutButton;
@@ -22,10 +26,15 @@ public class startingPageForm {
     private JButton prevButton, nextButton;
     private JTable calendarTable;
     private JScrollPane calendarScroll;
+    private JTextField monthTextField;
+    private JTextField dayTextField;
+    private JTextField yearTextField;
+    private JButton createEventButton;
     public static int month;
     public static int year;
 
-    public startingPageForm(loggedUser loggedUser) {
+    public startingPageForm() //  loggedUser
+    {
 
         JFrame frame = new JFrame("Organizer");
         frame.setContentPane(spMainPanel);
@@ -75,6 +84,23 @@ public class startingPageForm {
                 eventsPanel.setVisible(false);
                 profilePanel.setVisible(false);
 
+                calendarTable.addMouseListener(new MouseAdapter() {
+                    public void mouseReleased(MouseEvent e) {
+                        int selectedRow = calendarTable.getSelectedRow();
+                        int selectedColumn = calendarTable.getSelectedColumn();
+
+                        // Verificați dacă selecția este validă și conține o zi selectată
+                        Object selectedValue = calendarTable.getValueAt(selectedRow, selectedColumn);
+                        if (selectedRow != -1 && selectedColumn != -1 && selectedValue != "") {
+                            // Actualizați câmpurile de dată
+                            dayTextField.setText(selectedValue.toString());
+                            monthTextField.setText(String.valueOf(month));
+                            yearTextField.setText(String.valueOf(year));
+                        }
+                    }
+                });
+
+
                 // Add the listeners for the buttons
                 prevButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -96,6 +122,12 @@ public class startingPageForm {
                         }
                         monthLabel.setText(java.time.Month.of(month).toString() + " " + year);
                         calendarTable.setModel(new CalendarTableModel(month, year));
+                    }
+                });
+
+                createEventButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        
                     }
                 });
 

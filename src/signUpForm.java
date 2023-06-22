@@ -75,7 +75,7 @@ public class signUpForm {
             public void actionPerformed(ActionEvent e) {
                 if(login()){
                     frame.dispose();
-                    startingPageForm startingPage = new startingPageForm(loggedUser);
+                    startingPageForm startingPage = new startingPageForm(); //loggedUser
                 }
             }
         });
