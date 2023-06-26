@@ -6,6 +6,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class startingPageForm {
     private JButton logoutButton;
@@ -21,7 +25,6 @@ public class startingPageForm {
     private JButton joinButton1;
     private JPanel joinPanel;
     private JPanel eventsPanel;
-    private JButton eventsButton1;
     private JLabel monthLabel;
     private JButton prevButton, nextButton;
     private JTable calendarTable;
@@ -30,10 +33,11 @@ public class startingPageForm {
     private JTextField dayTextField;
     private JTextField yearTextField;
     private JButton createEventButton;
+    private JList<Event> eventsList;
     public static int month;
     public static int year;
 
-    public startingPageForm() //  loggedUser
+    public startingPageForm(loggedUser loggedUser) //  loggedUser
     {
 
         JFrame frame = new JFrame("Organizer");
@@ -50,6 +54,7 @@ public class startingPageForm {
         eventsButton.setFocusable(false);
         profileButton.setFocusable(false);
         logoutButton.setFocusable(false);
+
         joinButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -127,9 +132,22 @@ public class startingPageForm {
 
                 createEventButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        
+                        // Check if a date is selected
+                        if (!dayTextField.getText().isEmpty()) {
+                            // Get the selected date
+                            int selectedDay = Integer.parseInt(dayTextField.getText());
+
+                            // Create a new instance of NewEventForm and pass the selected date and loggedUser object
+                            NewEventPopup newEventPopup = new NewEventPopup(frame, selectedDay, month, year, loggedUser.getUsername());
+                            newEventPopup.setVisible(true);
+
+                        } else {
+                            // Display an error message
+                            JOptionPane.showMessageDialog(frame, "No date selected","", JOptionPane.ERROR_MESSAGE);
+                        }
                     }
                 });
+
 
             }
         });
@@ -140,8 +158,18 @@ public class startingPageForm {
                 calendarPanel.setVisible(false);
                 eventsPanel.setVisible(true);
                 profilePanel.setVisible(false);
+
+                // Retrieve the user's events from the database
+                DefaultListModel<Event> userEvents = retrieveUserEvents(loggedUser.getUsername());
+                eventsList.setCellRenderer(new EventCellRenderer());
+
+                // Set the list model to the eventsList
+                eventsList.setModel(userEvents);
+                eventsList.setCellRenderer(new EventCellRenderer());
             }
         });
+
+
         profileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -159,6 +187,45 @@ public class startingPageForm {
             }
         });
     }
+    private DefaultListModel<Event> retrieveUserEvents(String creator) {
+        DefaultListModel<Event> listModel = new DefaultListModel<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving events
+            String sql = "SELECT * FROM events WHERE organizer = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, creator);
+
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and create Event objects
+            while (resultSet.next()) {
+                int eventId = resultSet.getInt("id");
+                String eventName = resultSet.getString("name");
+                String organizer = resultSet.getString("organizer");
+                Date date = resultSet.getDate("date");
+
+                // Create an Event object and add it to the list model
+                Event event = new Event(eventId, eventName, organizer, date);
+                listModel.addElement(event);
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return listModel;
+    }
+
+
 }
 
 

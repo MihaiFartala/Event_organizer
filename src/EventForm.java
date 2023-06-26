@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class signUpForm {
+public class EventForm {
     private JButton signUpButton;
     public JPanel mainPanel;
     private JTextField usernameField;
@@ -30,8 +30,7 @@ public class signUpForm {
     private JPasswordField loginPassword;
 
     loggedUser loggedUser;
-
-    public signUpForm() {
+    public EventForm() {
 
         JFrame frame = new JFrame("Event organizer");
         frame.setContentPane(mainPanel);
