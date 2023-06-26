@@ -6,18 +6,12 @@ public class Event {
     private final String organizer;
     private final Date date;
 
-    public Event(int id, String name, String organizer, Date date) {
-        this.id = id;
-        this.name = name;
-        this.organizer = organizer;
-        this.date = date;
-    }
 
     public int getId() {
         return id;
     }
 
-    public String getName() {
+    public  String getName() {
         return name;
     }
 
@@ -32,5 +26,13 @@ public class Event {
     @Override
     public String toString() {
         return name + " - " + organizer + " - " + date;
+    }
+
+
+    public Event(int id, String name, String organizer, Date date) {
+        this.id = id;
+        this.name = name;
+        this.organizer = organizer;
+        this.date = date;
     }
 }

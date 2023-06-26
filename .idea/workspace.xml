@@ -4,15 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="Hi">
-      <change afterPath="$PROJECT_DIR$/src/Event.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/EventCellRenderer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/EventForm.form" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/NewEventPopup.form" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/NewEventPopup.java" afterDir="false" />
+    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="26.06">
+      <change afterPath="$PROJECT_DIR$/src/ButtonsStyle.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/FieldsStyle.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventCellRenderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/NewEventPopup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/NewEventPopup.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/signUpForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/signUpForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.java" afterDir="false" />
@@ -46,6 +46,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.STATE": "right",
     "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.STATE": "left",
     "last_opened_file_path": "F:/Laborator Sabloane de Proiectare/Event_organizer/src",
@@ -149,7 +150,14 @@
       <option name="project" value="LOCAL" />
       <updated>1687345673083</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="26.06">
+      <created>1687769176309</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1687769176309</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -178,6 +186,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="D" />
     <MESSAGE value="Hi" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hi" />
+    <MESSAGE value="26.06" />
+    <option name="LAST_COMMIT_MESSAGE" value="26.06" />
   </component>
 </project>

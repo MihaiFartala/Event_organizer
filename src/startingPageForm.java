@@ -1,15 +1,11 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 
 public class startingPageForm {
     private JButton logoutButton;
@@ -34,8 +30,14 @@ public class startingPageForm {
     private JTextField yearTextField;
     private JButton createEventButton;
     private JList<Event> eventsList;
+    private JPanel datePanel;
+    private JPanel calendarTablePanel;
     public static int month;
     public static int year;
+    private boolean eventFormOpen = false;
+    private boolean eventCreateOpen = false;
+
+    private List<EventForm> openEventForms = new ArrayList<>();
 
     public startingPageForm(loggedUser loggedUser) //  loggedUser
     {
@@ -44,16 +46,25 @@ public class startingPageForm {
         frame.setContentPane(spMainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
-        frame.setSize(1200,800);
+        frame.setSize(1200, 800);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
         frame.setVisible(true);
 
-        calendarButton.setFocusable(false);
-        joinButton.setFocusable(false);
-        eventsButton.setFocusable(false);
-        profileButton.setFocusable(false);
-        logoutButton.setFocusable(false);
+        eventsButton.doClick();
+
+        ButtonsStyle.applyButtonStyles(calendarButton);
+        ButtonsStyle.applyButtonStyles(joinButton);
+        ButtonsStyle.applyButtonStyles(eventsButton);
+        ButtonsStyle.applyButtonStyles(profileButton);
+        ButtonsStyle.applyButtonStyles(logoutButton);
+        ButtonsStyle.applyButtonStyles(createEventButton);
+        ButtonsStyle.applyButtonStyles(nextButton);
+        ButtonsStyle.applyButtonStyles(prevButton);
+
+        FieldsStyle.applyStyle(dayTextField);
+        FieldsStyle.applyStyle(monthTextField);
+        FieldsStyle.applyStyle(yearTextField);
 
         joinButton.addActionListener(new ActionListener() {
             @Override
@@ -132,6 +143,14 @@ public class startingPageForm {
 
                 createEventButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
+                        // Check if the event form is already open
+                        if (eventCreateOpen) {
+                            return; // Do nothing if the form is already open
+                        }
+
+                        // Set the flag to indicate that the event form is now open
+                        eventCreateOpen = true;
+
                         // Check if a date is selected
                         if (!dayTextField.getText().isEmpty()) {
                             // Get the selected date
@@ -139,16 +158,25 @@ public class startingPageForm {
 
                             // Create a new instance of NewEventForm and pass the selected date and loggedUser object
                             NewEventPopup newEventPopup = new NewEventPopup(frame, selectedDay, month, year, loggedUser.getUsername());
-                            newEventPopup.setVisible(true);
 
+                            // Add a window listener to the event form
+                            newEventPopup.addWindowListener(new WindowAdapter() {
+                                public void windowClosed(WindowEvent e) {
+                                    // Reset the flag when the event form is closed
+                                    eventCreateOpen = false;
+                                }
+                            });
+
+                            newEventPopup.setVisible(true);
                         } else {
                             // Display an error message
-                            JOptionPane.showMessageDialog(frame, "No date selected","", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(frame, "No date selected", "", JOptionPane.ERROR_MESSAGE);
+
+                            // Reset the flag since the event form was not opened
+                            eventCreateOpen = false;
                         }
                     }
                 });
-
-
             }
         });
         eventsButton.addActionListener(new ActionListener() {
@@ -160,14 +188,60 @@ public class startingPageForm {
                 profilePanel.setVisible(false);
 
                 // Retrieve the user's events from the database
-                DefaultListModel<Event> userEvents = retrieveUserEvents(loggedUser.getUsername());
+                List<Event> userEvents = retrieveUserEvents(loggedUser.getUsername());
+
+                // Create a DefaultListModel to hold the events
+                DefaultListModel<Event> eventsListModel = new DefaultListModel<>();
+
+                // Add the user events to the list model
+                for (Event event : userEvents) {
+                    eventsListModel.addElement(event);
+                }
+
+                // Set the new list model to the existing eventsList
+                eventsList.setModel(eventsListModel);
+
+                // Set the cell renderer for the eventsList
                 eventsList.setCellRenderer(new EventCellRenderer());
 
-                // Set the list model to the eventsList
-                eventsList.setModel(userEvents);
-                eventsList.setCellRenderer(new EventCellRenderer());
+                // Refresh the eventsPanel to reflect the changes
+                eventsPanel.revalidate();
+                eventsPanel.repaint();
+
+                eventsList.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 2) {
+                            int selectedIndex = eventsList.getSelectedIndex();
+                            if (selectedIndex != -1) {
+                                Event selectedEvent = eventsList.getModel().getElementAt(selectedIndex);
+
+                                // Check if an event form is already open
+                                for (EventForm openEventForm : openEventForms) {
+                                    if (openEventForm.getSelectedEvent().equals(selectedEvent)) {
+                                        // Event form is already open, bring it to front and return
+                                        openEventForm.toFront();
+                                        eventsButton.doClick();
+                                        return;
+                                    }
+                                }
+
+                                EventForm eventForm = new EventForm(selectedEvent);
+                                openEventForms.add(eventForm);
+
+                                eventForm.addWindowListener(new WindowAdapter() {
+                                    public void windowClosed(WindowEvent e) {
+                                        openEventForms.remove(eventForm);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
             }
         });
+
+
+
 
 
         profileButton.addActionListener(new ActionListener() {
@@ -187,8 +261,9 @@ public class startingPageForm {
             }
         });
     }
-    private DefaultListModel<Event> retrieveUserEvents(String creator) {
-        DefaultListModel<Event> listModel = new DefaultListModel<>();
+
+    private List<Event> retrieveUserEvents(String creator) {
+        List<Event> eventsList = new ArrayList<>();
 
         try {
             // Establish a database connection
@@ -209,9 +284,9 @@ public class startingPageForm {
                 String organizer = resultSet.getString("organizer");
                 Date date = resultSet.getDate("date");
 
-                // Create an Event object and add it to the list model
+                // Create an Event object and add it to the list
                 Event event = new Event(eventId, eventName, organizer, date);
-                listModel.addElement(event);
+                eventsList.add(event);
             }
 
             // Close the result set, statement, and connection
@@ -222,9 +297,8 @@ public class startingPageForm {
             e.printStackTrace();
         }
 
-        return listModel;
+        return eventsList;
     }
-
 
 }
 

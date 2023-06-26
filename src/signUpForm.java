@@ -43,6 +43,17 @@ public class signUpForm {
         loginUsername.requestFocusInWindow();
         frame.setVisible(true);
 
+        ButtonsStyle.applyButtonStyles(signUpButton);
+        ButtonsStyle.applyButtonStyles(goToSignUpButton);
+        ButtonsStyle.applyButtonStyles(goToLoginButton);
+        ButtonsStyle.applyButtonStyles(LoginButton);
+
+        FieldsStyle.applyStyle(loginUsername);
+        FieldsStyle.applyStyle(loginPassword);
+        FieldsStyle.applyStyle(usernameField);
+        FieldsStyle.applyStyle(emailField);
+        FieldsStyle.applyStyle(passwordField);
+        FieldsStyle.applyStyle(confirmPasswordField);
 
 
         signUpButton.addActionListener(new ActionListener() {
@@ -138,6 +149,7 @@ public class signUpForm {
         String password = String.valueOf(passwordField.getPassword());
         String confirmPassword = String.valueOf(confirmPasswordField.getPassword());
 
+
         if(checkData(username, email, password, confirmPassword)){
             try{
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
@@ -174,6 +186,12 @@ public class signUpForm {
     }
 
     private Boolean checkData(String user, String email, String pass, String cPass){
+
+        if(user.isEmpty() || email.isEmpty() || pass.isEmpty() || cPass.isEmpty()){
+            JOptionPane.showMessageDialog(this.mainPanel, "Please complete all fields!","Empty fields!", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
         if(checkUsernameValidity(user))
             if(checkUsernameDuplicity(user))
                 if(checkPasswordValidity(pass)){
@@ -186,25 +204,30 @@ public class signUpForm {
     }
 
     private Boolean checkUsernameValidity(String user){
-        if(user.contains(" "))
-        {
-            JOptionPane.showMessageDialog(this.mainPanel, "The username can not contain spaces","Username error", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
+
+//        if(user.contains(" "))
+//        {
+//            JOptionPane.showMessageDialog(this.mainPanel, "The username can not contain spaces","Username error", JOptionPane.WARNING_MESSAGE);
+//            usernameField.requestFocusInWindow();
+//            return false;
+//        }
 
         if(user.length() > 15 || user.length() < 5)
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Username must have between 5 and 15 characters!","Username error", JOptionPane.WARNING_MESSAGE);
+            usernameField.requestFocusInWindow();
             return false;
         }
         if(user.charAt(0) == Character.toLowerCase(user.charAt(0))){
             JOptionPane.showMessageDialog(this.mainPanel, "The first character of the username must be a CAPITAL letter!","Username error", JOptionPane.WARNING_MESSAGE);
+            usernameField.requestFocusInWindow();
             return false;
         }
         List<Character> specialCharacters = new ArrayList<>(List.of('!','@','#','$','%','^','&','*','(',')','[',']','{','}','<','>','?','"','\'','\\','|',':',';','.',',','/','~','`','=','+'));
         for(Character chr : specialCharacters){
             if(user.contains(String.valueOf(chr))){
                 JOptionPane.showMessageDialog(this.mainPanel, "Username cannot contain special characters, except for: ' - ' , ' _ ' and the space character!","Username error", JOptionPane.WARNING_MESSAGE);
+                usernameField.requestFocusInWindow();
                 return false;
             }
         }
@@ -244,10 +267,12 @@ public class signUpForm {
         if(password.contains(" "))
         {
             JOptionPane.showMessageDialog(this.mainPanel, "The password can not contain spaces","Password error", JOptionPane.WARNING_MESSAGE);
+            passwordField.requestFocusInWindow();
             return false;
         }
         if(password.length() < 8 || password.length() > 25){
             JOptionPane.showMessageDialog(this.mainPanel, "The password must have between 8 and 25 characters","Password error", JOptionPane.WARNING_MESSAGE);
+            passwordField.requestFocusInWindow();
             return false;
         }
         else {
@@ -263,6 +288,7 @@ public class signUpForm {
 
             if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())){
                 JOptionPane.showMessageDialog(this.mainPanel, "The password must be a combination of uppercase letters, lowercase letters, numbers and symbols","Password error", JOptionPane.WARNING_MESSAGE);
+                passwordField.requestFocusInWindow();
                 return false;
             }
         }
@@ -272,6 +298,7 @@ public class signUpForm {
     private Boolean checkConfirmedPassword(String password, String confirm){
         if(!password.equals(confirm)){
             JOptionPane.showMessageDialog(this.mainPanel, "The confirmation password is not equal with the password","Confirmation password error", JOptionPane.WARNING_MESSAGE);
+            confirmPasswordField.requestFocusInWindow();
             return false;
         }
         return true;
@@ -282,6 +309,7 @@ public class signUpForm {
         if(email.contains(" "))
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -295,6 +323,7 @@ public class signUpForm {
         if (email == null)
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -305,6 +334,7 @@ public class signUpForm {
         else
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -326,6 +356,7 @@ public class signUpForm {
 
             if(rs.next()){
                 JOptionPane.showMessageDialog(this.mainPanel, "Email is already in use!","Email error", JOptionPane.INFORMATION_MESSAGE);
+                emailField.requestFocusInWindow();
                 emailField.setText("");
                 emailField.requestFocus();
                 return false;

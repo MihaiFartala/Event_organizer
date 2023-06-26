@@ -1,68 +1,67 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.Container;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class EventCellRenderer extends JPanel implements ListCellRenderer<Event> {
-    private final JLabel eventLabel;
+    private final JLabel nameLabel;
     private final JLabel organizerLabel;
+    private final JLabel timeLeftLabel;
 
     public EventCellRenderer() {
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(200, 60)); // Adjust the preferred size as needed
+        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        setBackground(new Color(227, 226, 219));
+        JLabel arrowLabel = new JLabel("\u27F6"); // Bullet point Unicode character
+        arrowLabel.setFont(arrowLabel.getFont().deriveFont(Font.BOLD, 16f));
+        arrowLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(arrowLabel, BorderLayout.WEST);
 
-        eventLabel = new JLabel();
-        eventLabel.setFont(eventLabel.getFont().deriveFont(Font.BOLD));
-        add(eventLabel, BorderLayout.NORTH);
+        JPanel textPanel = new JPanel(new BorderLayout());
+        textPanel.setBorder(new EmptyBorder(17, 10, 0, 0)); // Add spacing between bullet and labels
+        textPanel.setOpaque(false);
 
-        // Create and configure the organizer label
+        nameLabel = new JLabel();
+        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 14f));
+        textPanel.add(nameLabel, BorderLayout.NORTH);
+
         organizerLabel = new JLabel();
-        organizerLabel.setFont(organizerLabel.getFont().deriveFont(Font.ITALIC));
-        add(organizerLabel, BorderLayout.CENTER);
+        organizerLabel.setFont(organizerLabel.getFont().deriveFont(Font.ITALIC, 12f));
+        textPanel.add(organizerLabel, BorderLayout.CENTER);
 
-        // Create and configure the "Go To" button
-        JButton goToButton = new JButton("Go To");
-        goToButton.setFocusable(false);
-        goToButton.setPreferredSize(new Dimension(70, 25));
-        goToButton.setBackground(new Color(146, 26, 44)); // Set the background color
-        goToButton.setForeground(new Color(248, 248, 248)); // Set the foreground color
-        add(goToButton, BorderLayout.EAST);
+        timeLeftLabel = new JLabel();
+        timeLeftLabel.setFont(timeLeftLabel.getFont().deriveFont(Font.PLAIN, 12f));
+        textPanel.add(timeLeftLabel, BorderLayout.EAST);
 
-        // Add vertical spacing between rows
-        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-//        // Add ActionListener to the "Go To" button
-//        goToButton.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JList<Event> eventList = findEventList(EventCellRenderer.this);
-//                Event selectedEvent = eventList.getSelectedValue();
-//                if (selectedEvent != null) {
-//                    // Open a new form specific to the selected event
-//                    EventDetailsForm eventDetailsForm = new EventDetailsForm(selectedEvent);
-//                    eventDetailsForm.setVisible(true);
-//                }
-//            }
-//        });
-    }
-
-    private JList<Event> findEventList(Container container) {
-        if (container instanceof JList) {
-            return (JList<Event>) container;
-        } else if (container.getParent() != null) {
-            return findEventList(container.getParent());
-        } else {
-            throw new IllegalStateException("EventCellRenderer is not contained within a JList");
-        }
+        add(textPanel, BorderLayout.CENTER);
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends Event> list, Event value, int index, boolean isSelected, boolean cellHasFocus) {
-        eventLabel.setText("Event: " + value.getName());
-        organizerLabel.setText("Created by: " + value.getOrganizer());
+    public Component getListCellRendererComponent(JList<? extends Event> list, Event value, int index,
+                                                  boolean isSelected, boolean cellHasFocus) {
+        nameLabel.setText("<html><b>Event:</b> " + value.getName() + "</html>");
+        organizerLabel.setText("<html><b>Organizer:</b> " + value.getOrganizer() + "</html>");
+
+        // Calculate the time difference
+        long currentTime = System.currentTimeMillis();
+        long eventTime = value.getDate().getTime();
+        long timeDifference = eventTime - currentTime;
+
+        if (timeDifference <= 0) {
+            // Event has already passed
+            timeLeftLabel.setText("<html><font color='red'>Event has passed</font></html>");
+        } else {
+            // Convert the time difference to days, hours, and minutes
+            long days = timeDifference / (24 * 60 * 60 * 1000);
+            long hours = (timeDifference % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
+            long minutes = (timeDifference % (60 * 60 * 1000)) / (60 * 1000);
+
+            String timeLeft = "<html><b>Time Left:</b> " + days + " days, " + hours + " hours, " + minutes + " minutes</html>";
+            timeLeftLabel.setText(timeLeft);
+        }
 
         // Set the background and foreground color based on selection
         if (isSelected) {

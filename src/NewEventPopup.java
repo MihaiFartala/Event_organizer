@@ -28,6 +28,14 @@ public class NewEventPopup extends JDialog {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         eventNameField.requestFocusInWindow();
 
+        FieldsStyle.applyStyle(creatorField);
+        FieldsStyle.applyStyle(eventNameField);
+        FieldsStyle.applyStyle(dateField);
+        FieldsStyle.applyStyle(timeSpinner);
+
+        ButtonsStyle.applyButtonStyles(cancelButton);
+        ButtonsStyle.applyButtonStyles(createButton);
+
         // Convert the selected date to a formatted string
         String date = String.format("%02d/%02d/%04d", day, month, year);
 
