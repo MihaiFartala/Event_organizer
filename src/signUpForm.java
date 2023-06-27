@@ -40,7 +40,20 @@ public class signUpForm {
         frame.setSize(430,400);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
+        loginUsername.requestFocusInWindow();
         frame.setVisible(true);
+
+        ButtonsStyle.applyButtonStyles(signUpButton);
+        ButtonsStyle.applyButtonStyles(goToSignUpButton);
+        ButtonsStyle.applyButtonStyles(goToLoginButton);
+        ButtonsStyle.applyButtonStyles(LoginButton);
+
+        FieldsStyle.applyStyle(loginUsername);
+        FieldsStyle.applyStyle(loginPassword);
+        FieldsStyle.applyStyle(usernameField);
+        FieldsStyle.applyStyle(emailField);
+        FieldsStyle.applyStyle(passwordField);
+        FieldsStyle.applyStyle(confirmPasswordField);
 
 
         signUpButton.addActionListener(new ActionListener() {
@@ -57,6 +70,7 @@ public class signUpForm {
                 LoginPanel.setVisible(true);
                 loginUsername.setText("");
                 loginPassword.setText("");
+                loginUsername.requestFocusInWindow();
             }
         });
         goToSignUpButton.addActionListener(new ActionListener() {
@@ -68,6 +82,7 @@ public class signUpForm {
                 emailField.setText("");
                 passwordField.setText("");
                 confirmPasswordField.setText("");
+                usernameField.requestFocusInWindow();
             }
         });
         LoginButton.addActionListener(new ActionListener() {
@@ -75,7 +90,7 @@ public class signUpForm {
             public void actionPerformed(ActionEvent e) {
                 if(login()){
                     frame.dispose();
-                    startingPageForm startingPage = new startingPageForm(); //loggedUser
+                    startingPageForm startingPage = new startingPageForm(loggedUser); //loggedUser
                 }
             }
         });
@@ -104,7 +119,7 @@ public class signUpForm {
         passwordField.addKeyListener(enterKeyListenerSignUp);
         confirmPasswordField.addKeyListener(enterKeyListenerSignUp);
 
-        // Add ActionListener to input fields for handling Enter key press for signup form
+
         KeyListener enterKeyListenerLogin = new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -134,6 +149,7 @@ public class signUpForm {
         String password = String.valueOf(passwordField.getPassword());
         String confirmPassword = String.valueOf(confirmPasswordField.getPassword());
 
+
         if(checkData(username, email, password, confirmPassword)){
             try{
                 Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
@@ -154,12 +170,14 @@ public class signUpForm {
                 e.printStackTrace();
             }
 
-            JOptionPane.showMessageDialog(this.mainPanel, "New account created! Go to Login Page!","Success!", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this.mainPanel, "New account successfully created!","Success!", JOptionPane.INFORMATION_MESSAGE);
             usernameField.setText("");
             emailField.setText("");
             passwordField.setText("");
             confirmPasswordField.setText("");
             usernameField.requestFocus();
+
+            goToLoginButton.doClick();
         }
     }
 
@@ -168,38 +186,48 @@ public class signUpForm {
     }
 
     private Boolean checkData(String user, String email, String pass, String cPass){
+
+        if(user.isEmpty() || email.isEmpty() || pass.isEmpty() || cPass.isEmpty()){
+            JOptionPane.showMessageDialog(this.mainPanel, "Please complete all fields!","Empty fields!", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
         if(checkUsernameValidity(user))
             if(checkUsernameDuplicity(user))
                 if(checkPasswordValidity(pass)){
                     if(checkConfirmedPassword(pass,cPass))
                         if(checkEmailValidity(email)){
-                            if(checkEmailDuplicity(email))
-                                return true;
+                            return checkEmailDuplicity(email);
                         }
                 }
         return false;
     }
 
     private Boolean checkUsernameValidity(String user){
-        if(user.contains(" "))
-        {
-            JOptionPane.showMessageDialog(this.mainPanel, "The username can not contain spaces","Username error", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
+
+//        if(user.contains(" "))
+//        {
+//            JOptionPane.showMessageDialog(this.mainPanel, "The username can not contain spaces","Username error", JOptionPane.WARNING_MESSAGE);
+//            usernameField.requestFocusInWindow();
+//            return false;
+//        }
 
         if(user.length() > 15 || user.length() < 5)
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Username must have between 5 and 15 characters!","Username error", JOptionPane.WARNING_MESSAGE);
+            usernameField.requestFocusInWindow();
             return false;
         }
         if(user.charAt(0) == Character.toLowerCase(user.charAt(0))){
             JOptionPane.showMessageDialog(this.mainPanel, "The first character of the username must be a CAPITAL letter!","Username error", JOptionPane.WARNING_MESSAGE);
+            usernameField.requestFocusInWindow();
             return false;
         }
         List<Character> specialCharacters = new ArrayList<>(List.of('!','@','#','$','%','^','&','*','(',')','[',']','{','}','<','>','?','"','\'','\\','|',':',';','.',',','/','~','`','=','+'));
         for(Character chr : specialCharacters){
             if(user.contains(String.valueOf(chr))){
                 JOptionPane.showMessageDialog(this.mainPanel, "Username cannot contain special characters, except for: ' - ' , ' _ ' and the space character!","Username error", JOptionPane.WARNING_MESSAGE);
+                usernameField.requestFocusInWindow();
                 return false;
             }
         }
@@ -212,15 +240,15 @@ public class signUpForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT username from users " +
-                         "WHERE username = '" + user + "'";
+            String sql = "SELECT username from users WHERE username = ?";
 
             PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setString(1,user);
 
             ResultSet rs = preparedStatement.executeQuery();
 
 
-            while(rs.next()){
+            if(rs.next()){
                 JOptionPane.showMessageDialog(this.mainPanel, "Username already taken!","Username error", JOptionPane.INFORMATION_MESSAGE);
                 usernameField.setText("");
                 usernameField.requestFocus();
@@ -239,10 +267,12 @@ public class signUpForm {
         if(password.contains(" "))
         {
             JOptionPane.showMessageDialog(this.mainPanel, "The password can not contain spaces","Password error", JOptionPane.WARNING_MESSAGE);
+            passwordField.requestFocusInWindow();
             return false;
         }
         if(password.length() < 8 || password.length() > 25){
             JOptionPane.showMessageDialog(this.mainPanel, "The password must have between 8 and 25 characters","Password error", JOptionPane.WARNING_MESSAGE);
+            passwordField.requestFocusInWindow();
             return false;
         }
         else {
@@ -258,6 +288,7 @@ public class signUpForm {
 
             if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())){
                 JOptionPane.showMessageDialog(this.mainPanel, "The password must be a combination of uppercase letters, lowercase letters, numbers and symbols","Password error", JOptionPane.WARNING_MESSAGE);
+                passwordField.requestFocusInWindow();
                 return false;
             }
         }
@@ -267,6 +298,7 @@ public class signUpForm {
     private Boolean checkConfirmedPassword(String password, String confirm){
         if(!password.equals(confirm)){
             JOptionPane.showMessageDialog(this.mainPanel, "The confirmation password is not equal with the password","Confirmation password error", JOptionPane.WARNING_MESSAGE);
+            confirmPasswordField.requestFocusInWindow();
             return false;
         }
         return true;
@@ -277,6 +309,7 @@ public class signUpForm {
         if(email.contains(" "))
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -286,9 +319,11 @@ public class signUpForm {
                 "A-Z]{2,7}$";
 
         Pattern pat = Pattern.compile(emailRegex);
+
         if (email == null)
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -299,6 +334,7 @@ public class signUpForm {
         else
         {
             JOptionPane.showMessageDialog(this.mainPanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+            emailField.requestFocusInWindow();
             return false;
         }
 
@@ -318,8 +354,9 @@ public class signUpForm {
             ResultSet rs = preparedStatement.executeQuery();
 
 
-            while(rs.next()){
+            if(rs.next()){
                 JOptionPane.showMessageDialog(this.mainPanel, "Email is already in use!","Email error", JOptionPane.INFORMATION_MESSAGE);
+                emailField.requestFocusInWindow();
                 emailField.setText("");
                 emailField.requestFocus();
                 return false;
@@ -336,10 +373,7 @@ public class signUpForm {
     private boolean login(){
         String username = loginUsername.getText();
         String password = String.valueOf(loginPassword.getPassword());
-        if(checkUserAndPassword(username, password)){
-            return true;
-        }
-        return false;
+        return checkUserAndPassword(username, password);
     }
 
     private void close(){
@@ -372,7 +406,7 @@ public class signUpForm {
             ResultSet rs = preparedStatement.executeQuery();
 
 
-            while(rs.next()){
+            if(rs.next()){
                 String user = rs.getString("username");
                 String pass = rs.getString("password");
 
