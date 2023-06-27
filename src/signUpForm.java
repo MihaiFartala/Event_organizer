@@ -413,7 +413,8 @@ public class signUpForm {
                 if(user.equals(username) && pass.equals(PasswordHash.hashPassword(password))){
                     String email = rs.getString("email");
                     int id  = rs.getInt("id");
-                    loggedUser = new loggedUser(user, pass, email, id);
+                    int phone_number = rs.getInt("phone_number");
+                    loggedUser = new loggedUser(user, email, id, phone_number);
                     return true;
                 }
                 else {
