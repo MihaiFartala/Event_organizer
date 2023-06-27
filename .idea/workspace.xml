@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="26.06">
-      <change afterPath="$PROJECT_DIR$/src/ButtonsStyle.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/FieldsStyle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_21_06_2023_19_36__Changes_.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_21_06_2023_19_36__Changes_.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Event.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/EventCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventCellRenderer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/EventForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/EventForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/NewEventPopup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/NewEventPopup.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signUpForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/signUpForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.java" afterDir="false" />
     </list>
@@ -41,21 +35,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.STATE": "right",
-    "UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.STATE": "left",
-    "last_opened_file_path": "F:/Laborator Sabloane de Proiectare/Event_organizer/src",
-    "project.structure.last.edited": "Libraries",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "Errors"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;true&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.STATE&quot;: &quot;right&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.STATE&quot;: &quot;left&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/Laborator Sabloane de Proiectare/Event_organizer/src&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="F:\Laborator Sabloane de Proiectare\Event_organizer\src" />
