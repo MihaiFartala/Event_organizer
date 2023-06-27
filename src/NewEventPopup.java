@@ -17,7 +17,7 @@ public class NewEventPopup extends JDialog {
     private JButton cancelButton;
     private JButton createButton;
 
-    public NewEventPopup(Frame owner, int day, int month, int year, String eventCreator) {
+    public NewEventPopup(Frame owner, int day, int month, int year, loggedUser creator) {
         super(owner, "Create Event", true);
 
         setContentPane(popupPanel);
@@ -42,7 +42,7 @@ public class NewEventPopup extends JDialog {
         dateField.setText(date);
         dateField.setEditable(false);
 
-        creatorField.setText(eventCreator);
+        creatorField.setText(creator.getUsername());
         creatorField.setEditable(false);
 
         // Crearea modelului pentru selectorul de ore și minute

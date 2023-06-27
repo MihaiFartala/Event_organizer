@@ -32,6 +32,7 @@ public class startingPageForm {
     private JList<Event> eventsList;
     private JPanel datePanel;
     private JPanel calendarTablePanel;
+    private JList<Event> ownEventsList;
     public static int month;
     public static int year;
     private boolean eventFormOpen = false;
@@ -157,7 +158,7 @@ public class startingPageForm {
                             int selectedDay = Integer.parseInt(dayTextField.getText());
 
                             // Create a new instance of NewEventForm and pass the selected date and loggedUser object
-                            NewEventPopup newEventPopup = new NewEventPopup(frame, selectedDay, month, year, loggedUser.getUsername());
+                            NewEventPopup newEventPopup = new NewEventPopup(frame, selectedDay, month, year, loggedUser);
 
                             // Add a window listener to the event form
                             newEventPopup.addWindowListener(new WindowAdapter() {
@@ -188,27 +189,65 @@ public class startingPageForm {
                 profilePanel.setVisible(false);
 
                 // Retrieve the user's events from the database
-                List<Event> userEvents = retrieveUserEvents(loggedUser.getUsername());
+                List<Event> userEvents = retrieveUserEvents(loggedUser.getId());
+                List<Event> ownEvents = retrieveOwnEvents(loggedUser.getId());
 
                 // Create a DefaultListModel to hold the events
                 DefaultListModel<Event> eventsListModel = new DefaultListModel<>();
+                DefaultListModel<Event> ownEventsListModel = new DefaultListModel<>();
 
                 // Add the user events to the list model
                 for (Event event : userEvents) {
                     eventsListModel.addElement(event);
                 }
 
+                for (Event event : ownEvents) {
+                    ownEventsListModel.addElement(event);
+                }
+
                 // Set the new list model to the existing eventsList
                 eventsList.setModel(eventsListModel);
+                ownEventsList.setModel(eventsListModel);
 
                 // Set the cell renderer for the eventsList
                 eventsList.setCellRenderer(new EventCellRenderer());
+                ownEventsList.setCellRenderer(new EventCellRenderer());
 
                 // Refresh the eventsPanel to reflect the changes
                 eventsPanel.revalidate();
                 eventsPanel.repaint();
 
                 eventsList.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 2) {
+                            int selectedIndex = eventsList.getSelectedIndex();
+                            if (selectedIndex != -1) {
+                                Event selectedEvent = eventsList.getModel().getElementAt(selectedIndex);
+
+                                // Check if an event form is already open
+                                for (EventForm openEventForm : openEventForms) {
+                                    if (openEventForm.getSelectedEvent().equals(selectedEvent)) {
+                                        // Event form is already open, bring it to front and return
+                                        openEventForm.toFront();
+                                        eventsButton.doClick();
+                                        return;
+                                    }
+                                }
+
+                                EventForm eventForm = new EventForm(selectedEvent);
+                                openEventForms.add(eventForm);
+
+                                eventForm.addWindowListener(new WindowAdapter() {
+                                    public void windowClosed(WindowEvent e) {
+                                        openEventForms.remove(eventForm);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+
+                ownEventsList.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
                         if (e.getClickCount() == 2) {
                             int selectedIndex = eventsList.getSelectedIndex();
@@ -262,7 +301,7 @@ public class startingPageForm {
         });
     }
 
-    private List<Event> retrieveUserEvents(String creator) {
+    private List<Event> retrieveUserEvents(int id) {
         List<Event> eventsList = new ArrayList<>();
 
         try {
@@ -270,9 +309,47 @@ public class startingPageForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             // Prepare the SQL statement for retrieving events
-            String sql = "SELECT * FROM events WHERE organizer = ?";
+            String sql = "SELECT * FROM events WHERE id = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, creator);
+            statement.setInt(1, id);
+
+            // Execute the query
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and create Event objects
+            while (resultSet.next()) {
+                int eventId = resultSet.getInt("id");
+                String eventName = resultSet.getString("name");
+                String organizer = resultSet.getString("organizer");
+                Date date = resultSet.getDate("date");
+
+                // Create an Event object and add it to the list
+                Event event = new Event(eventId, eventName, organizer, date);
+                eventsList.add(event);
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return eventsList;
+    }
+
+    private List<Event> retrieveOwnEvents(int id) {
+        List<Event> eventsList = new ArrayList<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving events
+            String sql = "SELECT * FROM events WHERE id = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, id);
 
             // Execute the query
             ResultSet resultSet = statement.executeQuery();
