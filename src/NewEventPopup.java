@@ -129,14 +129,15 @@ public class NewEventPopup extends JDialog {
 
 
                         // Prepare the SQL statement for inserting into the events table
-                        String sql = "INSERT INTO events (name, organizer, date) VALUES (?, ?, ?)";
+                        String sql = "INSERT INTO events (name, organizer, date, organizer_id) VALUES (?, ?, ?, ?)";
                         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
                              PreparedStatement insertEventStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
                             // Set the values in the prepared statement
                             insertEventStatement.setString(1, eventName);
-                            insertEventStatement.setString(2, organizer);
+                            insertEventStatement.setString(2, creator.getUsername());
                             insertEventStatement.setTimestamp(3, new java.sql.Timestamp(selectedDateTime.getTimeInMillis()));
+                            insertEventStatement.setInt(4, creator.getId());
 
                             // Execute the statement
                             insertEventStatement.executeUpdate();
@@ -148,23 +149,11 @@ public class NewEventPopup extends JDialog {
                                 eventID = generatedKeys.getInt(1);
                             }
 
-                            // Retrieve the user ID based on the organizer's name
-                            String selectUserSQL = "SELECT id FROM users WHERE username = ?";
-                            try (PreparedStatement selectUserStatement = conn.prepareStatement(selectUserSQL)) {
-                                selectUserStatement.setString(1, organizer);
-                                try (ResultSet userResultSet = selectUserStatement.executeQuery()) {
-                                    if (userResultSet.next()) {
-                                        int userID = userResultSet.getInt("id");
-
-                                        // Insert the organizer as a member in the event_members table
-                                        String insertMemberSQL = "INSERT INTO event_members (event_id, user_id) VALUES (?, ?)";
-                                        try (PreparedStatement insertMemberStatement = conn.prepareStatement(insertMemberSQL)) {
-                                            insertMemberStatement.setInt(1, eventID);
-                                            insertMemberStatement.setInt(2, userID);
-                                            insertMemberStatement.executeUpdate();
-                                        }
-                                    }
-                                }
+                            String insertMemberSQL = "INSERT INTO event_members (event_id, user_id, relation) VALUES (?, ?, 'creator')";
+                            try (PreparedStatement insertMemberStatement = conn.prepareStatement(insertMemberSQL)) {
+                                insertMemberStatement.setInt(1, eventID);
+                                insertMemberStatement.setInt(2, creator.getId());
+                                insertMemberStatement.executeUpdate();
                             }
 
                             // Close the result set and prepared statements

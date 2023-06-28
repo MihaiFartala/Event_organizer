@@ -5,6 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 
+import static java.sql.Types.NULL;
+import static javax.swing.SwingConstants.BOTTOM;
+
 public class EventForm extends JFrame {
     private JPanel buttonsPanel;
     private JPanel spMainPanel;
@@ -21,11 +24,14 @@ public class EventForm extends JFrame {
     private JLabel eventNameLabel;
     private JLabel eventOrganiserLabel;
     private JLabel eventDateLabel;
+    private JLabel phoneLabel;
     private static EventForm lastOpenedForm;
 
     private final Event selectedEvent;
 
-    public EventForm(Event currentEvent) {
+    private static loggedUser loggedUser;
+
+    public EventForm(Event currentEvent, loggedUser loggedUser) {
         JFrame frame = new JFrame(currentEvent.getName());
         frame.setContentPane(spMainPanel);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -43,9 +49,13 @@ public class EventForm extends JFrame {
         ButtonsStyle.applyButtonStyles(memberListButton);
         ButtonsStyle.applyButtonStyles(closeEventButton);
 
+        //adminEditButton.setVisible(new Color());
+
         selectedEvent = currentEvent;
 
+        adminEditButton.setVisible(loggedUser.getId() == currentEvent.getOrganizer_id());
 
+        EventForm.loggedUser = loggedUser;
 
         adminEditButton.addActionListener(new ActionListener() {
             @Override
@@ -108,7 +118,7 @@ public class EventForm extends JFrame {
             lastOpenedForm.dispose();
         }
 
-        lastOpenedForm = new EventForm(event);
+        lastOpenedForm = new EventForm(event, loggedUser);
         lastOpenedForm.setVisible(true);
     }
 
@@ -120,6 +130,16 @@ public class EventForm extends JFrame {
         eventNameLabel.setText(event.getName());
         eventOrganiserLabel.setText("Organizer: " + event.getOrganizer());
         eventDateLabel.setText("Date: " + event.getDate());
+        if(event.getPhone_number() == null){
+            phoneLabel.setVisible(false);
+        }
+        else {
+            phoneLabel.setText(event.getPhone_number());
+            eventOrganiserLabel.setVerticalAlignment(BOTTOM);
+        }
+
+
+
     }
 
     private void closeEventForm() {

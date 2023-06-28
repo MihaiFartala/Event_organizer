@@ -1,17 +1,14 @@
 public class loggedUser {
 
     private final String username;
-    private final String password;
     private final String email;
     private final int id;
+    private final int phone_number;
 
     public String getUsername() {
         return username;
     }
 
-    public String getPassword() {
-        return password;
-    }
 
     public String getEmail() {
         return email;
@@ -21,10 +18,10 @@ public class loggedUser {
         return id;
     }
 
-    public loggedUser(String user, String pass, String email, int id) {
+    public loggedUser(String user, String email, int id, int phone_number) {
         this.username = user;
-        this.password = pass;
         this.email = email;
         this.id = id;
+        this.phone_number = phone_number;
     }
 }
