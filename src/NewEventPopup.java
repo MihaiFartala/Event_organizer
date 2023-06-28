@@ -8,6 +8,8 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.awt.event.KeyListener;
+import java.util.Random;
+
 public class NewEventPopup extends JDialog {
     private JTextField dateField;
     private JTextField creatorField;
@@ -129,7 +131,7 @@ public class NewEventPopup extends JDialog {
 
 
                         // Prepare the SQL statement for inserting into the events table
-                        String sql = "INSERT INTO events (name, organizer, date, organizer_id) VALUES (?, ?, ?, ?)";
+                        String sql = "INSERT INTO events (name, organizer, date, organizer_id, organizer_number, join_code) VALUES (?, ?, ?, ?, ?, ?)";
                         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
                              PreparedStatement insertEventStatement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -138,6 +140,8 @@ public class NewEventPopup extends JDialog {
                             insertEventStatement.setString(2, creator.getUsername());
                             insertEventStatement.setTimestamp(3, new java.sql.Timestamp(selectedDateTime.getTimeInMillis()));
                             insertEventStatement.setInt(4, creator.getId());
+                            insertEventStatement.setString(5,creator.getPhoneNumber());
+                            insertEventStatement.setString(6,generateRandomCode());
 
                             // Execute the statement
                             insertEventStatement.executeUpdate();
@@ -172,7 +176,45 @@ public class NewEventPopup extends JDialog {
         });
     }
 
-        private boolean isEventNameTaken(String eventName, String organizer) {
+    private String generateRandomCode() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder randomCode = new StringBuilder();
+        Random random = new Random();
+
+        for (int i = 0; i < 5; i++) {
+            int index = random.nextInt(characters.length());
+            randomCode.append(characters.charAt(index));
+        }
+
+        if(isCodeAlreadyUsed(randomCode.toString())){
+            return generateRandomCode();
+        }
+        else {
+            return randomCode.toString();
+        }
+    }
+
+    private boolean isCodeAlreadyUsed(String code) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "")) {
+            String sql = "SELECT COUNT(*) FROM events WHERE join_code = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, code);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        int count = resultSet.getInt(1);
+                        return count > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+
+    private boolean isEventNameTaken(String eventName, String organizer) {
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "")) {
             String sql = "SELECT COUNT(*) FROM events WHERE name = ? AND organizer = ?";
             try (PreparedStatement statement = conn.prepareStatement(sql)) {
