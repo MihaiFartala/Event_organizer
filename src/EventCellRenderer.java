@@ -1,5 +1,8 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -21,8 +24,12 @@ public class EventCellRenderer extends JPanel implements ListCellRenderer<Event>
         add(arrowLabel, BorderLayout.WEST);
 
         JPanel textPanel = new JPanel(new BorderLayout());
-        textPanel.setBorder(new EmptyBorder(17, 10, 0, 0)); // Add spacing between bullet and labels
+        Border matteBorder = new MatteBorder(0, 0, 1, 0, Color.BLACK);
+        Border emptyBorder = new EmptyBorder(17, 10, 0, 0);
+        Border compoundBorder = BorderFactory.createCompoundBorder(matteBorder, emptyBorder);
+        textPanel.setBorder(compoundBorder);
         textPanel.setOpaque(false);
+
 
         nameLabel = new JLabel();
         nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 14f));
@@ -45,23 +52,24 @@ public class EventCellRenderer extends JPanel implements ListCellRenderer<Event>
         nameLabel.setText("<html><b>Event:</b> " + value.getName() + "</html>");
         organizerLabel.setText("<html><b>Organizer:</b> " + value.getOrganizer() + "</html>");
 
-        // Calculate the time difference
-        long currentTime = System.currentTimeMillis();
-        long eventTime = value.getDate().getTime();
-        long timeDifference = eventTime - currentTime;
 
-        if (timeDifference <= 0) {
+        // Calculate the time difference
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime eventTime = value.getDate();
+        Duration duration = Duration.between(currentTime, eventTime);
+
+        if (duration.isNegative() || duration.isZero()) {
             // Event has already passed
             timeLeftLabel.setText("<html><font color='red'>Event has passed</font></html>");
         } else {
-            // Convert the time difference to days, hours, and minutes
-            long days = timeDifference / (24 * 60 * 60 * 1000);
-            long hours = (timeDifference % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
-            long minutes = (timeDifference % (60 * 60 * 1000)) / (60 * 1000);
+            long days = duration.toDays();
+            long hours = duration.toHoursPart();
+            long minutes = duration.toMinutesPart();
 
             String timeLeft = "<html><b>Time Left:</b> " + days + " days, " + hours + " hours, " + minutes + " minutes</html>";
             timeLeftLabel.setText(timeLeft);
         }
+
 
         // Set the background and foreground color based on selection
         if (isSelected) {

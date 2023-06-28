@@ -1,12 +1,13 @@
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Event {
     private final int id;
-    private final String name;
+    private String name;
     private final String organizer;
-    private final Date date;
-    private final String phone_number;
+    private LocalDateTime date;
+    private String phone_number;
     private final int organizer_id;
+    private final String join_code;
 
 
     public int getId() {
@@ -21,7 +22,7 @@ public class Event {
         return organizer;
     }
 
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
@@ -38,13 +39,17 @@ public class Event {
         return name + " - " + organizer + " - " + date;
     }
 
+    public String getJoin_code(){
+        return join_code;
+    }
 
-    public Event(int id, String name, String organizer, Date date, String phone_number, int organizer_id) {
+    public Event(int id, String name, String organizer, LocalDateTime date, String phone_number, int organizer_id, String joinCode) {
         this.id = id;
         this.name = name;
         this.organizer = organizer;
         this.date = date;
         this.phone_number = phone_number;
         this.organizer_id = organizer_id;
+        this.join_code = joinCode;
     }
 }

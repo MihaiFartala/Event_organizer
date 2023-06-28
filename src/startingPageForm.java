@@ -1,11 +1,11 @@
 import javax.swing.*;
+import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +20,6 @@ public class startingPageForm {
     private JButton profileButton;
     private JPanel profilePanel;
     private JPanel calendarPanel;
-    private JButton joinButton1;
     private JPanel joinPanel;
     private JPanel eventsPanel;
     private JLabel monthLabel;
@@ -46,12 +45,25 @@ public class startingPageForm {
     private JButton updateUsernameButton;
     private JButton updateEmailButton;
     private JButton updatePhoneNumberButton;
+    private JPanel personalDataPanel;
+    private JLabel phoneLabel;
+    private JLabel emailLabel;
+    private JLabel usernameLabel;
+    private JPanel userInfoPanel;
+    private JScrollPane memberScrollPane;
+    private JScrollPane ownScrollPane;
+    private JPanel enterPanel;
+    private JPanel seachPanel;
+    private JScrollPane searchPane;
+    private JTextField textField1;
+    private JButton button1;
+    private JList<Event> searchList;
     public static int month;
     public static int year;
     private boolean eventFormOpen = false;
     private boolean eventCreateOpen = false;
     private boolean profileOpen = false;
-    private boolean inviteOpen = false;
+    private int joinCounter = 0;
 
     private List<EventForm> openEventForms = new ArrayList<>();
 
@@ -92,6 +104,9 @@ public class startingPageForm {
         FieldsStyle.applyStyle(updateEmailField);
         FieldsStyle.applyStyle(updatePhoneNumberField);
 
+        memberScrollPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+        ownScrollPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+        searchPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
 
         joinButton.addActionListener(new ActionListener() {
             @Override
@@ -100,6 +115,9 @@ public class startingPageForm {
                 calendarPanel.setVisible(false);
                 eventsPanel.setVisible(false);
                 profilePanel.setVisible(false);
+
+                populateSearchList(loggedUser.getId());
+
             }
         });
         calendarButton.addActionListener(new ActionListener() {
@@ -224,11 +242,9 @@ public class startingPageForm {
             }
         }
 
-
         oldPassField.addKeyListener(new EnterKeyListener());
         newPassField.addKeyListener(new EnterKeyListener());
         confNewPassField.addKeyListener(new EnterKeyListener());
-
 
 
         eventsButton.addActionListener(new ActionListener() {
@@ -249,6 +265,8 @@ public class startingPageForm {
 
                 eventsList.setModel(eventsListModel);
                 eventsList.setCellRenderer(new EventCellRenderer());
+
+                eventsList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
 
 
                 eventsList.addMouseListener(new MouseAdapter() {
@@ -291,6 +309,8 @@ public class startingPageForm {
 
                 ownEventsList.setModel(ownEventsListModel);
                 ownEventsList.setCellRenderer(new EventCellRenderer());
+
+                ownEventsList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
 
                 ownEventsList.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
@@ -339,13 +359,24 @@ public class startingPageForm {
                 eventsPanel.setVisible(false);
                 profilePanel.setVisible(true);
 
+
+                usernameLabel.setText(loggedUser.getUsername());
+                emailLabel.setText(loggedUser.getEmail());
+                phoneLabel.setText(loggedUser.getPhoneNumber());
+
             }
         });
 
         updateUsernameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String Username = new String(updateUsernameField.getText());
+                String Username = updateUsernameField.getText();
+
+                if(Username.equals(loggedUser.getUsername())){
+                    JOptionPane.showMessageDialog(profilePanel, "Same username was introduced", "Username Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
+                    return;
+                }
 
                 if(checkUsernameValidity(Username) && checkUsernameDuplicity(Username) ){
                     try {
@@ -365,6 +396,12 @@ public class startingPageForm {
                         statement.close();
                         conn.close();
 
+                        JOptionPane.showMessageDialog(profilePanel, "Username was updated", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        frame.requestFocusInWindow();
+
+                        loggedUser.setUsername(Username);
+                        updateUsernameField.setText("");
+                        profileButton.doClick();
                         // Return true if the update affected at least one row
                     } catch (SQLException f) {
                         f.printStackTrace();
@@ -379,7 +416,13 @@ public class startingPageForm {
         updateEmailButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String Email = new String(updateEmailField.getText());
+                String Email = updateEmailField.getText();
+
+                if(Email.equals(loggedUser.getEmail())){
+                    JOptionPane.showMessageDialog(profilePanel, "Same email was introduced", "Email Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
+                    return;
+                }
 
                 if(checkEmailValidity(Email) && checkEmailDuplicity(Email) ){
                     try {
@@ -399,6 +442,12 @@ public class startingPageForm {
                         statement.close();
                         conn.close();
 
+                        JOptionPane.showMessageDialog(profilePanel, "Email was updated", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        frame.requestFocusInWindow();
+
+                        loggedUser.setEmail(Email);
+                        updateEmailField.setText("");
+                        profileButton.doClick();
                         // Return true if the update affected at least one row
                     } catch (SQLException f) {
                         f.printStackTrace();
@@ -410,10 +459,16 @@ public class startingPageForm {
             }
         });
 
-        updatePhoneNumberField.addActionListener(new ActionListener() {
+        updatePhoneNumberButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String Phone = new String(updatePhoneNumberField.getText());
+                String Phone = updatePhoneNumberField.getText();
+
+                if(Phone.equals(loggedUser.getPhoneNumber())){
+                    JOptionPane.showMessageDialog(profilePanel, "Same phone number was introduced", "Phone Number Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
+                    return;
+                }
 
                 if(Phone.length() == 10 && Phone.startsWith("07") && Phone.matches("\\d{10}")){
                     try {
@@ -433,12 +488,20 @@ public class startingPageForm {
                         statement.close();
                         conn.close();
 
+                        JOptionPane.showMessageDialog(profilePanel, "Phone number was updated", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        frame.requestFocusInWindow();
+
+                        loggedUser.setPhoneNumber(Phone);
+                        updatePhoneNumberField.setText("");
+                        profileButton.doClick();
                         // Return true if the update affected at least one row
                     } catch (SQLException f) {
                         f.printStackTrace();
                     }
                 }
                 else {
+                    JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid phone number", "Phone Number Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
                     return;
                 }
             }
@@ -456,12 +519,14 @@ public class startingPageForm {
 
                 if (!isPasswordCorrect) {
                     JOptionPane.showMessageDialog(profilePanel, "Incorrect password.", "Password Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
                     return;
                 }
 
                 // Check if the new password and confirmation password match
                 if (!newPassword.equals(confirmPassword)) {
                     JOptionPane.showMessageDialog(profilePanel, "New password and confirmation password do not match.", "Password Change Failed", JOptionPane.ERROR_MESSAGE);
+                    frame.requestFocusInWindow();
                     return;
                 }
 
@@ -477,7 +542,7 @@ public class startingPageForm {
                     oldPassField.setText("");
                     newPassField.setText("");
                     confNewPassField.setText("");
-                    oldPassField.requestFocusInWindow();
+                    frame.requestFocusInWindow();
                 } else {
                     JOptionPane.showMessageDialog(passwordPanel, "Failed to update the password The password must have between 8 and 25 characters, have letters, numbers, symbols and no spaces.", "Password Change Failed", JOptionPane.ERROR_MESSAGE);
                 }
@@ -555,12 +620,12 @@ public class startingPageForm {
         if(password.contains(" "))
         {
             JOptionPane.showMessageDialog(this.profilePanel, "The password can not contain spaces","Password error", JOptionPane.WARNING_MESSAGE);
-            newPassField.requestFocusInWindow();
+            profilePanel.requestFocusInWindow();
             return false;
         }
         if(password.length() < 8 || password.length() > 25){
-            JOptionPane.showMessageDialog(this.profilePanel, "The password must have between 8 and 25 characters","Password error", JOptionPane.WARNING_MESSAGE);
-            newPassField.requestFocusInWindow();
+            JOptionPane.showMessageDialog(this.profilePanel, "The new password must have between 8 and 25 characters","Password error", JOptionPane.WARNING_MESSAGE);
+            profilePanel.requestFocusInWindow();
             return false;
         }
         else {
@@ -575,8 +640,8 @@ public class startingPageForm {
             Matcher hasSpecial = special.matcher(password);
 
             if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())){
-                JOptionPane.showMessageDialog(this.profilePanel, "The password must be a combination of uppercase letters, lowercase letters, numbers and symbols","Password error", JOptionPane.WARNING_MESSAGE);
-                newPassField.requestFocusInWindow();
+                JOptionPane.showMessageDialog(this.profilePanel, "The password new must be a combination of uppercase letters, lowercase letters, numbers and symbols","Password error", JOptionPane.WARNING_MESSAGE);
+                profilePanel.requestFocusInWindow();
                 return false;
             }
         }
@@ -616,12 +681,14 @@ public class startingPageForm {
                 if (eventResultSet.next()) {
                     String eventName = eventResultSet.getString("name");
                     String organizer = eventResultSet.getString("organizer");
-                    Date date = eventResultSet.getDate("date");
+                    Timestamp timestamp = eventResultSet.getTimestamp("date"); // Use Timestamp instead of Date
                     String phone_number = eventResultSet.getString("organizer_number");
                     int organizer_id = eventResultSet.getInt("organizer_id");
+                    String joinCode = eventResultSet.getString("join_code");
 
+                    LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
                     // Create an Event object and add it to the list
-                    Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id);
+                    Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id, joinCode);
                     eventsList.add(event);
                 }
 
@@ -641,6 +708,142 @@ public class startingPageForm {
         return eventsList;
     }
 
+    private void populateSearchList(int user_id) {
+        // Clear existing data and listeners
+        DefaultListModel<Event> eventsListModel = new DefaultListModel<>();
+        searchList.setModel(eventsListModel);
+        searchList.setCellRenderer(new EventCellRenderer());
+        searchList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
+        searchList.clearSelection();
+        searchList.addMouseListener(null);
+
+        // Populate the list with new data
+        List<Event> events = retrieveEvents(user_id);
+        for (Event event : events) {
+            eventsListModel.addElement(event);
+        }
+
+        // Add a new mouse listener to searchList
+        searchList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int selectedIndex = searchList.getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        Event selectedEvent = searchList.getModel().getElementAt(selectedIndex);
+
+                        joinCounter++;
+
+                        if (joinCounter == 1) {
+                            if (joinEvent(selectedEvent.getId(), user_id)) {
+                                joinCounter = 0;
+                            }
+                        }
+                        System.out.println(joinCounter);
+                    }
+                }
+            }
+        });
+    }
+
+
+
+    private boolean joinEvent(int event_id, int user_id) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Check if the user already has a row with the given event ID
+            String checkSql = "SELECT COUNT(*) FROM event_members WHERE user_id = ? AND event_id = ?";
+            PreparedStatement checkStatement = conn.prepareStatement(checkSql);
+            checkStatement.setInt(1, user_id);
+            checkStatement.setInt(2, event_id);
+            ResultSet checkResult = checkStatement.executeQuery();
+            checkResult.next();
+            int rowCount = checkResult.getInt(1);
+            checkResult.close();
+            checkStatement.close();
+
+            if (rowCount > 0) {
+                JOptionPane.showMessageDialog(profilePanel, "You have already joined this event.", "Already Joined", JOptionPane.INFORMATION_MESSAGE);
+                return false;
+            }
+
+            // Insert the new row
+            String insertSql = "INSERT INTO event_members (event_id, user_id) VALUES (?, ?)";
+            PreparedStatement insertStatement = conn.prepareStatement(insertSql);
+            insertStatement.setInt(1, event_id);
+            insertStatement.setInt(2, user_id);
+            insertStatement.executeUpdate();
+            insertStatement.close();
+
+            conn.close();
+
+            JOptionPane.showMessageDialog(profilePanel, "Successfully joined the event!", "Joined!", JOptionPane.INFORMATION_MESSAGE);
+
+            // Manually update the search list
+            populateSearchList(user_id);
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+
+
+    private List<Event> retrieveEvents(int id) {
+        List<Event> eventsList = new ArrayList<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving event_ids where there is no matching row in event_members
+            String sql = "SELECT e.id, e.name, e.organizer, e.date, e.organizer_number, e.organizer_id, e.join_code " +
+                    "FROM events e " +
+                    "LEFT JOIN event_members m ON e.id = m.event_id AND m.user_id = ? " +
+                    "WHERE m.event_id IS NULL " +
+                    "ORDER BY e.date ASC";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, id);
+
+            // Execute the query to get event details
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve events
+            while (resultSet.next()) {
+                int eventId = resultSet.getInt("id");
+                String eventName = resultSet.getString("name");
+                String organizer = resultSet.getString("organizer");
+                Timestamp timestamp = resultSet.getTimestamp("date");
+                String phone_number = resultSet.getString("organizer_number");
+                int organizer_id = resultSet.getInt("organizer_id");
+                String joinCode = resultSet.getString("join_code");
+
+                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
+
+                // Create an Event object and add it to the list
+                LocalDateTime currentDateTime = LocalDateTime.now(); // Use LocalDateTime instead of Calendar
+                if (!date.isBefore(currentDateTime)) {
+                    Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id, joinCode);
+                    eventsList.add(event);
+                }
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return eventsList;
+    }
+
+
 
     private List<Event> retrieveOwnEvents(int id) {
         List<Event> eventsList = new ArrayList<>();
@@ -650,7 +853,7 @@ public class startingPageForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             // Prepare the SQL statement for retrieving events
-            String sql = "SELECT * FROM events WHERE organizer_id = ? ORDER BY date";
+            String sql = "SELECT * FROM events WHERE organizer_id = ? ORDER BY date ASC";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, id);
 
@@ -662,12 +865,14 @@ public class startingPageForm {
                 int eventId = resultSet.getInt("id");
                 String eventName = resultSet.getString("name");
                 String organizer = resultSet.getString("organizer");
-                Date date = resultSet.getDate("date");
+                Timestamp timestamp = resultSet.getTimestamp("date"); // Use Timestamp instead of Date
                 String phone_number = resultSet.getString("organizer_number");
                 int organizer_id = resultSet.getInt("organizer_id");
+                String joinCode = resultSet.getString("join_code");
 
+                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
                 // Create an Event object and add it to the list
-                Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id);
+                Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id, joinCode);
                 eventsList.add(event);
             }
 
