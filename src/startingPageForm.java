@@ -55,9 +55,16 @@ public class startingPageForm {
     private JPanel enterPanel;
     private JPanel seachPanel;
     private JScrollPane searchPane;
-    private JTextField textField1;
-    private JButton button1;
+    private JTextField enterCodeField;
+    private JButton joinEventButton;
     private JList<Event> searchList;
+    private JLabel phoneCheckLabel;
+    private JPanel userUpdatePanel;
+    private JPanel userInvitesPanel;
+    private JScrollPane requestsPane;
+    private JScrollPane invitesPane;
+    private JList<Event> invitesList;
+    private JList<Event> requestsList;
     public static int month;
     public static int year;
     private boolean eventFormOpen = false;
@@ -79,7 +86,6 @@ public class startingPageForm {
         frame.setResizable(false);
         frame.setVisible(true);
 
-        eventsButton.doClick();
 
         ButtonsStyle.applyButtonStyles(calendarButton);
         ButtonsStyle.applyButtonStyles(joinButton);
@@ -93,6 +99,7 @@ public class startingPageForm {
         ButtonsStyle.applyButtonStyles(updateUsernameButton);
         ButtonsStyle.applyButtonStyles(updateEmailButton);
         ButtonsStyle.applyButtonStyles(updatePhoneNumberButton);
+        ButtonsStyle.applyButtonStyles(joinEventButton);
 
         FieldsStyle.applyStyle(dayTextField);
         FieldsStyle.applyStyle(monthTextField);
@@ -103,10 +110,14 @@ public class startingPageForm {
         FieldsStyle.applyStyle(updateUsernameField);
         FieldsStyle.applyStyle(updateEmailField);
         FieldsStyle.applyStyle(updatePhoneNumberField);
+        FieldsStyle.applyStyle(enterCodeField);
 
         memberScrollPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
         ownScrollPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
         searchPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+        invitesPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+        requestsPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+
 
         joinButton.addActionListener(new ActionListener() {
             @Override
@@ -116,13 +127,51 @@ public class startingPageForm {
                 eventsPanel.setVisible(false);
                 profilePanel.setVisible(false);
 
+                enterCodeField.setText("");
+
                 populateSearchList(loggedUser.getId());
 
             }
         });
+
+
+        profileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                joinPanel.setVisible(false);
+                calendarPanel.setVisible(false);
+                eventsPanel.setVisible(false);
+                profilePanel.setVisible(true);
+
+
+                usernameLabel.setText(loggedUser.getUsername());
+                emailLabel.setText(loggedUser.getEmail());
+                if (loggedUser.getPhoneNumber() == null) {
+                    phoneLabel.setText("-no phone number was set-");
+                } else {
+                    phoneLabel.setText(loggedUser.getPhoneNumber());
+                }
+
+
+                populateRequestList(loggedUser.getId());
+                populateInviteList(loggedUser.getId());
+            }
+        });
+
+
+        profileButton.doClick();
         calendarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
+                if (loggedUser.getPhoneNumber() != null) {
+                    createEventButton.setEnabled(true);
+                    phoneCheckLabel.setVisible(false);
+                } else {
+                    createEventButton.setEnabled(false);
+                    phoneCheckLabel.setVisible(true);
+                    phoneCheckLabel.setText("<html>You need a phone number to<br>be able to create events!<br>Go to profile and set one!</html>");
+                }
 
                 month = java.time.MonthDay.now().getMonthValue(); // Set the initial month to the current month
                 year = java.time.LocalDate.now().getYear(); // Set the initial year to the current year
@@ -190,6 +239,7 @@ public class startingPageForm {
         createEventButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Check if the event form is already open
+
                 if (eventCreateOpen) {
                     return; // Do nothing if the form is already open
                 }
@@ -245,6 +295,26 @@ public class startingPageForm {
         oldPassField.addKeyListener(new EnterKeyListener());
         newPassField.addKeyListener(new EnterKeyListener());
         confNewPassField.addKeyListener(new EnterKeyListener());
+
+        class EnterKeyListener2 implements KeyListener {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // Check if the Enter key was pressed
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    joinEventButton.doClick();
+                }
+            }
+        }
+
+        enterCodeField.addKeyListener(new EnterKeyListener2());
 
 
         eventsButton.addActionListener(new ActionListener() {
@@ -347,38 +417,18 @@ public class startingPageForm {
             }
         });
 
-
-
-
-
-        profileButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                joinPanel.setVisible(false);
-                calendarPanel.setVisible(false);
-                eventsPanel.setVisible(false);
-                profilePanel.setVisible(true);
-
-
-                usernameLabel.setText(loggedUser.getUsername());
-                emailLabel.setText(loggedUser.getEmail());
-                phoneLabel.setText(loggedUser.getPhoneNumber());
-
-            }
-        });
-
         updateUsernameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String Username = updateUsernameField.getText();
 
-                if(Username.equals(loggedUser.getUsername())){
+                if (Username.equals(loggedUser.getUsername())) {
                     JOptionPane.showMessageDialog(profilePanel, "Same username was introduced", "Username Change Failed", JOptionPane.ERROR_MESSAGE);
                     frame.requestFocusInWindow();
                     return;
                 }
 
-                if(checkUsernameValidity(Username) && checkUsernameDuplicity(Username) ){
+                if (checkUsernameValidity(Username) && checkUsernameDuplicity(Username)) {
                     try {
                         // Establish a database connection
                         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
@@ -406,8 +456,7 @@ public class startingPageForm {
                     } catch (SQLException f) {
                         f.printStackTrace();
                     }
-                }
-                else {
+                } else {
                     return;
                 }
             }
@@ -418,13 +467,13 @@ public class startingPageForm {
             public void actionPerformed(ActionEvent e) {
                 String Email = updateEmailField.getText();
 
-                if(Email.equals(loggedUser.getEmail())){
+                if (Email.equals(loggedUser.getEmail())) {
                     JOptionPane.showMessageDialog(profilePanel, "Same email was introduced", "Email Change Failed", JOptionPane.ERROR_MESSAGE);
                     frame.requestFocusInWindow();
                     return;
                 }
 
-                if(checkEmailValidity(Email) && checkEmailDuplicity(Email) ){
+                if (checkEmailValidity(Email) && checkEmailDuplicity(Email)) {
                     try {
                         // Establish a database connection
                         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
@@ -452,8 +501,7 @@ public class startingPageForm {
                     } catch (SQLException f) {
                         f.printStackTrace();
                     }
-                }
-                else {
+                } else {
                     return;
                 }
             }
@@ -464,13 +512,13 @@ public class startingPageForm {
             public void actionPerformed(ActionEvent e) {
                 String Phone = updatePhoneNumberField.getText();
 
-                if(Phone.equals(loggedUser.getPhoneNumber())){
+                if (Phone.equals(loggedUser.getPhoneNumber())) {
                     JOptionPane.showMessageDialog(profilePanel, "Same phone number was introduced", "Phone Number Change Failed", JOptionPane.ERROR_MESSAGE);
                     frame.requestFocusInWindow();
                     return;
                 }
 
-                if(Phone.length() == 10 && Phone.startsWith("07") && Phone.matches("\\d{10}")){
+                if (Phone.length() == 10 && Phone.startsWith("07") && Phone.matches("\\d{10}")) {
                     try {
                         // Establish a database connection
                         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
@@ -498,8 +546,7 @@ public class startingPageForm {
                     } catch (SQLException f) {
                         f.printStackTrace();
                     }
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid phone number", "Phone Number Change Failed", JOptionPane.ERROR_MESSAGE);
                     frame.requestFocusInWindow();
                     return;
@@ -530,7 +577,7 @@ public class startingPageForm {
                     return;
                 }
 
-                if(!checkPasswordValidity(newPassword)){
+                if (!checkPasswordValidity(newPassword)) {
                     return;
                 }
                 // Update the user's password in the database with the new password
@@ -549,6 +596,21 @@ public class startingPageForm {
             }
         });
 
+        joinEventButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String code = enterCodeField.getText();
+
+                int eventId = retrieveEventIdByJoinCode(code);
+                if (eventId != -1) {
+                    joinEvent(eventId, loggedUser.getId());
+                } else {
+                    JOptionPane.showMessageDialog(joinPanel, "Event does not exist!", "Password error", JOptionPane.INFORMATION_MESSAGE);
+                    joinPanel.requestFocusInWindow();
+                }
+            }
+        });
+
         logoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -557,6 +619,36 @@ public class startingPageForm {
             }
         });
     }
+
+    private int retrieveEventIdByJoinCode(String joinCode) {
+        int eventId = -1; // Default value if event not found
+
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving the event ID
+            String sql = "SELECT id FROM events WHERE join_code = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, joinCode);
+
+            // Execute the query to get the event ID
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                eventId = resultSet.getInt("id");
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return eventId;
+    }
+
 
     private boolean verifyPassword(int userId, String password) {
         try {
@@ -616,38 +708,35 @@ public class startingPageForm {
         return false;
     }
 
-    private Boolean checkPasswordValidity(String password){
-        if(password.contains(" "))
-        {
-            JOptionPane.showMessageDialog(this.profilePanel, "The password can not contain spaces","Password error", JOptionPane.WARNING_MESSAGE);
+    private Boolean checkPasswordValidity(String password) {
+        if (password.contains(" ")) {
+            JOptionPane.showMessageDialog(this.profilePanel, "The password can not contain spaces", "Password error", JOptionPane.WARNING_MESSAGE);
             profilePanel.requestFocusInWindow();
             return false;
         }
-        if(password.length() < 8 || password.length() > 25){
-            JOptionPane.showMessageDialog(this.profilePanel, "The new password must have between 8 and 25 characters","Password error", JOptionPane.WARNING_MESSAGE);
+        if (password.length() < 8 || password.length() > 25) {
+            JOptionPane.showMessageDialog(this.profilePanel, "The new password must have between 8 and 25 characters", "Password error", JOptionPane.WARNING_MESSAGE);
             profilePanel.requestFocusInWindow();
             return false;
-        }
-        else {
+        } else {
             Pattern lowercase = Pattern.compile("[a-z]");
             Pattern uppercase = Pattern.compile("[A-Z]");
             Pattern digit = Pattern.compile("[0-9]");
-            Pattern special = Pattern.compile ("[!@#$%&*()_+=|<>?{}\\[\\]~-]");
+            Pattern special = Pattern.compile("[!@#$%&*()_+=|<>?{}\\[\\]~-]");
 
             Matcher hasLowercase = lowercase.matcher(password);
             Matcher hasUppercase = uppercase.matcher(password);
             Matcher hasDigit = digit.matcher(password);
             Matcher hasSpecial = special.matcher(password);
 
-            if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())){
-                JOptionPane.showMessageDialog(this.profilePanel, "The password new must be a combination of uppercase letters, lowercase letters, numbers and symbols","Password error", JOptionPane.WARNING_MESSAGE);
+            if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())) {
+                JOptionPane.showMessageDialog(this.profilePanel, "The password new must be a combination of uppercase letters, lowercase letters, numbers and symbols", "Password error", JOptionPane.WARNING_MESSAGE);
                 profilePanel.requestFocusInWindow();
                 return false;
             }
         }
         return true;
     }
-
 
 
     private List<Event> retrieveUserEvents(int id) {
@@ -658,7 +747,7 @@ public class startingPageForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             // Prepare the SQL statement for retrieving event_ids
-            String sql = "SELECT event_id FROM event_members WHERE user_id = ? AND relation != 'creator'";
+            String sql = "SELECT event_id FROM event_members WHERE user_id = ? AND relation NOT IN ('creator', 'request', 'invited')";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, id);
 
@@ -734,20 +823,138 @@ public class startingPageForm {
                         joinCounter++;
 
                         if (joinCounter == 1) {
-                            if (joinEvent(selectedEvent.getId(), user_id)) {
+                            if (requestJoinEvent(selectedEvent.getId(), user_id)) {
                                 joinCounter = 0;
                             }
                         }
-                        System.out.println(joinCounter);
                     }
                 }
             }
         });
     }
 
+    private void populateRequestList(int user_id) {
+        // Clear existing data and listeners
+        DefaultListModel<Event> eventsRequestListModel = new DefaultListModel<>();
+        requestsList.setModel(eventsRequestListModel);
+        requestsList.setCellRenderer(new EventCellRenderer());
+        requestsList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
+        requestsList.clearSelection();
+        requestsList.addMouseListener(null);
+
+        // Populate the list with new data
+        List<Event> events = retrieveRequestEvents(user_id);
+        for (Event event : events) {
+            eventsRequestListModel.addElement(event);
+        }
+
+        requestsList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int selectedIndex = requestsList.getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        Event selectedEvent = requestsList.getModel().getElementAt(selectedIndex);
+
+                        int confirm = JOptionPane.showConfirmDialog(requestsList, "Do you want to cancel the request?", "Cancel Request", JOptionPane.YES_NO_OPTION);
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            cancelRequest(selectedEvent.getId(), user_id);
+                            populateRequestList(user_id);
+                        }
+                    }
+                }
+            }
+        });
 
 
-    private boolean joinEvent(int event_id, int user_id) {
+    }
+
+    private void cancelRequest(int eventId, int userId) {
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement to delete the row
+            String sql = "DELETE FROM event_members WHERE event_id = ? AND user_id = ? AND relation = 'request'";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, eventId);
+            statement.setInt(2, userId);
+
+            // Execute the delete statement
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                JOptionPane.showMessageDialog(requestsList, "Request canceled successfully!", "Request Canceled", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(requestsList, "Unable to cancel request. It may have already been accepted.", "Request Cancellation Failed", JOptionPane.WARNING_MESSAGE);
+            }
+
+            // Close the statement and connection
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void populateInviteList(int user_id) {
+        // Clear existing data and listeners
+        DefaultListModel<Event> eventsInvitesListModel = new DefaultListModel<>();
+        invitesList.setModel(eventsInvitesListModel);
+        invitesList.setCellRenderer(new EventCellRenderer());
+        invitesList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
+        invitesList.clearSelection();
+        invitesList.addMouseListener(null);
+
+        // Populate the list with new data
+        List<Event> events = retrieveInviteEvents(user_id);
+        for (Event event : events) {
+            eventsInvitesListModel.addElement(event);
+        }
+
+        invitesList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int selectedIndex = invitesList.getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        Event selectedEvent = invitesList.getModel().getElementAt(selectedIndex);
+
+                        int confirm = JOptionPane.showConfirmDialog(invitesList, "Do you want to accept the request?", "Event Accept", JOptionPane.YES_NO_OPTION);
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            acceptInvite(selectedEvent.getId(), user_id);
+                            populateInviteList(user_id);
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    private void acceptInvite(int eventId, int userId) {
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement to delete the row
+            String sql = "DELETE FROM event_members WHERE event_id = ? AND user_id = ? AND relation = 'invited'";
+            PreparedStatement deleteStatement = conn.prepareStatement(sql);
+            deleteStatement.setInt(1, eventId);
+            deleteStatement.setInt(2, userId);
+
+            deleteStatement.executeUpdate();
+
+
+            deleteStatement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        joinEvent(eventId, userId);
+    }
+
+
+    private boolean requestJoinEvent(int event_id, int user_id) {
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
@@ -763,21 +970,22 @@ public class startingPageForm {
             checkStatement.close();
 
             if (rowCount > 0) {
-                JOptionPane.showMessageDialog(profilePanel, "You have already joined this event.", "Already Joined", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(profilePanel, "You have already requested to join this event.", "Request already sent!", JOptionPane.INFORMATION_MESSAGE);
                 return false;
             }
 
             // Insert the new row
-            String insertSql = "INSERT INTO event_members (event_id, user_id) VALUES (?, ?)";
+            String insertSql = "INSERT INTO event_members (event_id, user_id, relation) VALUES (?, ?, ?)";
             PreparedStatement insertStatement = conn.prepareStatement(insertSql);
             insertStatement.setInt(1, event_id);
             insertStatement.setInt(2, user_id);
+            insertStatement.setString(3, "request");
             insertStatement.executeUpdate();
             insertStatement.close();
 
             conn.close();
 
-            JOptionPane.showMessageDialog(profilePanel, "Successfully joined the event!", "Joined!", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(profilePanel, "Request was sent!", "Requested!", JOptionPane.INFORMATION_MESSAGE);
 
             // Manually update the search list
             populateSearchList(user_id);
@@ -791,6 +999,167 @@ public class startingPageForm {
         return false;
     }
 
+
+    private void joinEvent(int event_id, int user_id) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Check if the user already has a row with the given event ID
+            String checkSql = "SELECT COUNT(*) AS count, relation FROM event_members WHERE user_id = ? AND event_id = ?";
+            PreparedStatement checkStatement = conn.prepareStatement(checkSql);
+            checkStatement.setInt(1, user_id);
+            checkStatement.setInt(2, event_id);
+            ResultSet checkResult = checkStatement.executeQuery();
+            checkResult.next();
+            int rowCount = checkResult.getInt("count");
+            String relation = checkResult.getString("relation");
+
+            if (rowCount > 0) {
+                switch (relation) {
+                    case "invited" -> {
+                        JOptionPane.showMessageDialog(profilePanel, "You have already been invited to this event. You can accept the invite from your Profile page!", "Already Invited", JOptionPane.INFORMATION_MESSAGE);
+                        joinPanel.requestFocusInWindow();
+                        return;
+                    }
+                    case "participant", "creator" -> {
+                        JOptionPane.showMessageDialog(profilePanel, "You have already joined this event.", "Already Joined", JOptionPane.INFORMATION_MESSAGE);
+                        joinPanel.requestFocusInWindow();
+                        return;
+                    }
+                    case "request" -> {
+                        cancelRequest(event_id, user_id);
+                        joinPanel.requestFocusInWindow();
+                    }
+                }
+            }
+
+            checkResult.close();
+            checkStatement.close();
+
+            // Insert the new row
+            String insertSql = "INSERT INTO event_members (event_id, user_id) VALUES (?, ?)";
+            PreparedStatement insertStatement = conn.prepareStatement(insertSql);
+            insertStatement.setInt(1, event_id);
+            insertStatement.setInt(2, user_id);
+            insertStatement.executeUpdate();
+            insertStatement.close();
+
+
+            conn.close();
+
+            JOptionPane.showMessageDialog(profilePanel, "Successfully joined the event!", "Joined!", JOptionPane.INFORMATION_MESSAGE);
+            joinPanel.requestFocusInWindow();
+
+            // Manually update the search list
+            populateSearchList(user_id);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private List<Event> retrieveRequestEvents(int id) {
+        List<Event> eventsList = new ArrayList<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            String sql = "SELECT e.id, e.name, e.organizer, e.date, e.organizer_number, e.organizer_id, e.join_code " +
+                    "FROM events e " +
+                    "JOIN event_members m ON e.id = m.event_id " +
+                    "WHERE m.user_id = ? AND m.relation = 'request' " +
+                    "ORDER BY e.date ASC";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, id);
+
+
+            // Execute the query to get event details
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve events
+            while (resultSet.next()) {
+                int eventId = resultSet.getInt("id");
+                String eventName = resultSet.getString("name");
+                String organizer = resultSet.getString("organizer");
+                Timestamp timestamp = resultSet.getTimestamp("date");
+                String phone_number = resultSet.getString("organizer_number");
+                int organizer_id = resultSet.getInt("organizer_id");
+                String joinCode = resultSet.getString("join_code");
+
+                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
+
+                // Create an Event object and add it to the list
+                LocalDateTime currentDateTime = LocalDateTime.now(); // Use LocalDateTime instead of Calendar
+                if (!date.isBefore(currentDateTime)) {
+                    Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id, joinCode);
+                    eventsList.add(event);
+                }
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return eventsList;
+    }
+
+
+    private List<Event> retrieveInviteEvents(int id) {
+        List<Event> eventsList = new ArrayList<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            String sql = "SELECT e.id, e.name, e.organizer, e.date, e.organizer_number, e.organizer_id, e.join_code " +
+                    "FROM events e " +
+                    "JOIN event_members m ON e.id = m.event_id " +
+                    "WHERE m.user_id = ? AND m.relation = 'invited' " +
+                    "ORDER BY e.date ASC";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, id);
+
+
+            // Execute the query to get event details
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve events
+            while (resultSet.next()) {
+                int eventId = resultSet.getInt("id");
+                String eventName = resultSet.getString("name");
+                String organizer = resultSet.getString("organizer");
+                Timestamp timestamp = resultSet.getTimestamp("date");
+                String phone_number = resultSet.getString("organizer_number");
+                int organizer_id = resultSet.getInt("organizer_id");
+                String joinCode = resultSet.getString("join_code");
+
+                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
+
+                // Create an Event object and add it to the list
+                LocalDateTime currentDateTime = LocalDateTime.now(); // Use LocalDateTime instead of Calendar
+                if (!date.isBefore(currentDateTime)) {
+                    Event event = new Event(eventId, eventName, organizer, date, phone_number, organizer_id, joinCode);
+                    eventsList.add(event);
+                }
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return eventsList;
+    }
 
 
     private List<Event> retrieveEvents(int id) {
@@ -844,7 +1213,6 @@ public class startingPageForm {
     }
 
 
-
     private List<Event> retrieveOwnEvents(int id) {
         List<Event> eventsList = new ArrayList<>();
 
@@ -887,23 +1255,22 @@ public class startingPageForm {
         return eventsList;
     }
 
-    private Boolean checkUsernameValidity(String user){
+    private Boolean checkUsernameValidity(String user) {
 
-        if(user.length() > 15 || user.length() < 5)
-        {
-            JOptionPane.showMessageDialog(profilePanel, "Username must have between 5 and 15 characters!","Username error", JOptionPane.WARNING_MESSAGE);
+        if (user.length() > 15 || user.length() < 5) {
+            JOptionPane.showMessageDialog(profilePanel, "Username must have between 5 and 15 characters!", "Username error", JOptionPane.WARNING_MESSAGE);
             updateUsernameField.requestFocusInWindow();
             return false;
         }
-        if(user.charAt(0) == Character.toLowerCase(user.charAt(0))){
-            JOptionPane.showMessageDialog(profilePanel, "The first character of the username must be a CAPITAL letter!","Username error", JOptionPane.WARNING_MESSAGE);
+        if (user.charAt(0) == Character.toLowerCase(user.charAt(0))) {
+            JOptionPane.showMessageDialog(profilePanel, "The first character of the username must be a CAPITAL letter!", "Username error", JOptionPane.WARNING_MESSAGE);
             updateUsernameField.requestFocusInWindow();
             return false;
         }
-        List<Character> specialCharacters = new ArrayList<>(List.of('!','@','#','$','%','^','&','*','(',')','[',']','{','}','<','>','?','"','\'','\\','|',':',';','.',',','/','~','`','=','+'));
-        for(Character chr : specialCharacters){
-            if(user.contains(String.valueOf(chr))){
-                JOptionPane.showMessageDialog(profilePanel, "Username cannot contain special characters, except for: ' - ' , ' _ ' and the space character!","Username error", JOptionPane.WARNING_MESSAGE);
+        List<Character> specialCharacters = new ArrayList<>(List.of('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '[', ']', '{', '}', '<', '>', '?', '"', '\'', '\\', '|', ':', ';', '.', ',', '/', '~', '`', '=', '+'));
+        for (Character chr : specialCharacters) {
+            if (user.contains(String.valueOf(chr))) {
+                JOptionPane.showMessageDialog(profilePanel, "Username cannot contain special characters, except for: ' - ' , ' _ ' and the space character!", "Username error", JOptionPane.WARNING_MESSAGE);
                 updateUsernameField.requestFocusInWindow();
                 return false;
             }
@@ -911,75 +1278,70 @@ public class startingPageForm {
         return true;
     }
 
-    private Boolean checkUsernameDuplicity(String user){
+    private Boolean checkUsernameDuplicity(String user) {
 
-        try{
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             Statement stmt = conn.createStatement();
             String sql = "SELECT username from users WHERE username = ?";
 
             PreparedStatement preparedStatement = conn.prepareStatement(sql);
-            preparedStatement.setString(1,user);
+            preparedStatement.setString(1, user);
 
             ResultSet rs = preparedStatement.executeQuery();
 
 
-            if(rs.next()){
-                JOptionPane.showMessageDialog(profilePanel, "Username already taken!","Username error", JOptionPane.INFORMATION_MESSAGE);
+            if (rs.next()) {
+                JOptionPane.showMessageDialog(profilePanel, "Username already taken!", "Username error", JOptionPane.INFORMATION_MESSAGE);
                 updateUsernameField.setText("");
                 updateUsernameField.requestFocus();
                 return false;
             }
 
             stmt.close();
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return true;
     }
 
-    private Boolean checkEmailValidity(String email){
+    private Boolean checkEmailValidity(String email) {
 
-        if(email.contains(" "))
-        {
-            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+        if (email.contains(" ")) {
+            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address", "Email error", JOptionPane.WARNING_MESSAGE);
             updateEmailField.requestFocusInWindow();
             return false;
         }
 
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\."+
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." +
                 "[a-zA-Z0-9_+&*-]+)*@" +
                 "(?:[a-zA-Z0-9-]+\\.)+[a-z" +
                 "A-Z]{2,7}$";
 
         Pattern pat = Pattern.compile(emailRegex);
 
-        if (email == null)
-        {
-            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+        if (email == null) {
+            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address", "Email error", JOptionPane.WARNING_MESSAGE);
             updateEmailField.requestFocusInWindow();
             return false;
         }
 
-        if(pat.matcher(email).matches())
-        {
+        if (pat.matcher(email).matches()) {
             return true;
-        }
-        else
-        {
-            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address","Email error", JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(profilePanel, "Please introduce a valid email address", "Email error", JOptionPane.WARNING_MESSAGE);
             updateEmailField.requestFocusInWindow();
             return false;
         }
 
     }
 
-    private Boolean checkEmailDuplicity(String email){
+    private Boolean checkEmailDuplicity(String email) {
 
-        try{
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer","root","");
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             Statement stmt = conn.createStatement();
             String sql = "SELECT email from users " +
@@ -990,8 +1352,8 @@ public class startingPageForm {
             ResultSet rs = preparedStatement.executeQuery();
 
 
-            if(rs.next()){
-                JOptionPane.showMessageDialog(profilePanel, "Email is already in use!","Email error", JOptionPane.INFORMATION_MESSAGE);
+            if (rs.next()) {
+                JOptionPane.showMessageDialog(profilePanel, "Email is already in use!", "Email error", JOptionPane.INFORMATION_MESSAGE);
                 updateEmailField.requestFocusInWindow();
                 updateEmailField.setText("");
                 updateEmailField.requestFocus();
@@ -999,7 +1361,7 @@ public class startingPageForm {
             }
 
             stmt.close();
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

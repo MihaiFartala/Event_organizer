@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.awt.event.KeyListener;
 import java.util.Random;
 
+
 public class NewEventPopup extends JDialog {
     private JTextField dateField;
     private JTextField creatorField;

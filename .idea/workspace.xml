@@ -5,17 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="26.06">
-      <change afterPath="$PROJECT_DIR$/src/EventMember.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/MemberCellRenderer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ScrollBarStyle.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Event.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/EventCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventCellRenderer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/EventForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/EventForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MemberCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MemberCellRenderer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/NewEventPopup.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/NewEventPopup.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/loggedUser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/loggedUser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signUpForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/signUpForm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/startingPageForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/startingPageForm.java" afterDir="false" />
     </list>
