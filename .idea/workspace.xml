@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="29-06-night" />
+    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="Hi">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ChatCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ChatCellRenderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -145,12 +149,12 @@
       <option name="project" value="LOCAL" />
       <updated>1687769176309</updated>
     </task>
-    <task id="LOCAL-00008" summary="29-06-night">
-      <created>1687986652968</created>
+    <task id="LOCAL-00008" summary="Hi">
+      <created>1688040531796</created>
       <option name="number" value="00008" />
       <option name="presentableId" value="LOCAL-00008" />
       <option name="project" value="LOCAL" />
-      <updated>1687986652968</updated>
+      <updated>1688040531796</updated>
     </task>
     <option name="localTasksCounter" value="9" />
     <servers />
@@ -180,9 +184,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="D" />
-    <MESSAGE value="Hi" />
     <MESSAGE value="26.06" />
-    <MESSAGE value="29-06-night" />
-    <option name="LAST_COMMIT_MESSAGE" value="29-06-night" />
+    <MESSAGE value="Hi" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hi" />
   </component>
 </project>

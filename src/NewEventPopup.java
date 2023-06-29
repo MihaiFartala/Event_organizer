@@ -162,6 +162,16 @@ public class NewEventPopup extends JDialog {
                             }
 
                             // Close the result set and prepared statements
+                            // Create a table for chat messages
+                            String createChatTableSQL = "CREATE TABLE chat" + eventID + " (" +
+                                    "message_id INT AUTO_INCREMENT PRIMARY KEY," +
+                                    "sender VARCHAR(25)," +
+                                    "message TEXT," +
+                                    "date DATETIME)";
+
+                            try (Statement createTableStatement = conn.createStatement()) {
+                                createTableStatement.executeUpdate(createChatTableSQL);
+                            }
                             generatedKeys.close();
                         }
 

@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Event {
@@ -32,6 +33,12 @@ public class Event {
 
     public int getOrganizer_id(){
         return organizer_id;
+    }
+    public void setDate(LocalDateTime date){
+        this.date = date;
+    }
+    public void setName(String name){
+        this.name = name;
     }
 
     @Override
