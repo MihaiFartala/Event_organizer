@@ -386,6 +386,7 @@ public class EventForm extends JFrame {
 
                 sendMessage(message, loggedUser.getUsername(), currentEvent.getId());
                 messageField.setText("");
+                messageField.requestFocusInWindow();
             }
         });
 
@@ -416,7 +417,7 @@ public class EventForm extends JFrame {
         DefaultListModel<Message> chatListModel = new DefaultListModel<>();
 
         chatList.setModel(chatListModel);
-        chatList.setCellRenderer(new ChatCellRenderer(loggedUser.getUsername()));
+        chatList.setCellRenderer(new ChatCellRenderer());
         chatList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
 
         chatList.clearSelection();
@@ -451,9 +452,8 @@ public class EventForm extends JFrame {
                 String sender = resultSet.getString("sender");
                 Timestamp timestamp = resultSet.getTimestamp("date");
 
-                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
+                LocalDateTime date = timestamp.toLocalDateTime();
 
-                LocalDateTime currentDateTime = LocalDateTime.now(); // Use LocalDateTime instead of Calendar
                 Message messageObj = new Message(message, sender, date);
                 messagesList.add(messageObj);
 
@@ -495,7 +495,7 @@ public class EventForm extends JFrame {
             insertMessageStatement.close();
             conn.close();
 
-
+            populateChatList(eventId);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

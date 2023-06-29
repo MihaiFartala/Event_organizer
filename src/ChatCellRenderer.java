@@ -11,7 +11,7 @@ public class ChatCellRenderer extends JPanel implements ListCellRenderer<Message
     private final JLabel messageLabel;
     private final JLabel dateLabel;
 
-    public ChatCellRenderer(String user) {
+    public ChatCellRenderer() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
