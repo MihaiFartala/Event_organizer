@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.time.LocalTime;
-
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JScrollPane;
 
 import static javax.swing.SwingConstants.BOTTOM;
 
@@ -48,6 +50,15 @@ public class EventForm extends JFrame {
     private JTextField eventNameField;
     private JButton updateEventNameButton;
     private JSpinner eventTimeSpinner;
+    private JTextField kickField;
+    private JButton kickButton;
+    private JButton banButton;
+    private JTextField banField;
+    private JPanel kickBanPanel;
+    private JScrollPane chatPane;
+    private JTextField messageField;
+    private JButton sendMessageButton;
+    private JList<Message> chatList;
     private static EventForm lastOpenedForm;
 
     private final Event selectedEvent;
@@ -74,13 +85,20 @@ public class EventForm extends JFrame {
         ButtonsStyle.applyButtonStyles(inviteMemberButton);
         ButtonsStyle.applyButtonStyles(updateEventDateButton);
         ButtonsStyle.applyButtonStyles(updateEventNameButton);
+        ButtonsStyle.applyButtonStyles(kickButton);
+        ButtonsStyle.applyButtonStyles(banButton);
+        ButtonsStyle.applyButtonStyles(sendMessageButton);
 
         FieldsStyle.applyStyle(userToInviteField);
         FieldsStyle.applyStyle(eventDateField);
         FieldsStyle.applyStyle(eventTimeSpinner);
         FieldsStyle.applyStyle(eventNameField);
+        FieldsStyle.applyStyle(kickField);
+        FieldsStyle.applyStyle(banField);
+        FieldsStyle.applyStyle(messageField);
 
         memberListPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+        chatPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
 
         selectedEvent = currentEvent;
         adminEditButton.setVisible(loggedUser.getId() == currentEvent.getOrganizer_id());
@@ -200,6 +218,8 @@ public class EventForm extends JFrame {
                     conn.close();
 
                     JOptionPane.showMessageDialog(adminEditPanel, "Event date updated successfully!", "Date Updated", JOptionPane.INFORMATION_MESSAGE);
+                    currentEvent.setDate(Timestamp.valueOf(newDateTime).toLocalDateTime());
+                    showEventDetails(currentEvent);
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
@@ -215,6 +235,8 @@ public class EventForm extends JFrame {
                 chatPanel.setVisible(true);
                 invitePanel.setVisible(false);
                 adminEditPanel.setVisible(false);
+
+                populateChatList(currentEvent.getId());
             }
         });
 
@@ -279,9 +301,293 @@ public class EventForm extends JFrame {
             }
         });
 
+        kickButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = kickField.getText();
+
+                if (username.equals(loggedUser.getUsername())){
+                    JOptionPane.showMessageDialog(adminEditPanel, "You can not kick yourself.", "You are the creator", JOptionPane.ERROR_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                    return;
+                }
+
+                // Search for the user ID based on the username
+                int userId = retrieveUserIdByUsername(username);
+
+                if (userId != -1) {
+                    // Update the event_members table for the user with the "kicked" relation
+                    updateEventMemberRelation(userId, currentEvent.getId(), "kicked");
+                    // Additional actions or UI updates if needed
+                } else {
+                    JOptionPane.showMessageDialog(adminEditPanel, "User not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                }
+            }
+        });
+
+        banButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = banField.getText();
+
+                if (username.equals(loggedUser.getUsername())){
+                    JOptionPane.showMessageDialog(adminEditPanel, "You can not ban yourself.", "You are the creator", JOptionPane.ERROR_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                    return;
+                }
+
+                // Search for the user ID based on the username
+                int userId = retrieveUserIdByUsername(username);
+
+                if (userId != -1) {
+                    // Update the event_members table for the user with the "banned" relation
+                    updateEventMemberRelation(userId, currentEvent.getId(), "banned");
+                    // Additional actions or UI updates if needed
+                } else {
+                    JOptionPane.showMessageDialog(adminEditPanel, "User not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
 
+        updateEventNameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String eventName = eventNameField.getText();
+
+                if(eventName.isEmpty()){
+                    JOptionPane.showMessageDialog(adminEditPanel, "Please introduce a name for the event", "Empty field", JOptionPane.WARNING_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                    return;
+                }
+
+                if (isEventNameTaken(eventName, loggedUser.getId())) {
+                    JOptionPane.showMessageDialog(adminEditPanel, "You already have an event with the same name. You can delete that event if you want to create a new one.", "Duplicate Event Name", JOptionPane.WARNING_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                }
+                else {
+                    updateEventName(eventName, currentEvent.getId());
+                    currentEvent.setName(eventName);
+                    showEventDetails(currentEvent);
+                }
+            }
+        });
+
+
+
+        sendMessageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = messageField.getText();
+
+                if(message.isEmpty())
+                    return;
+
+                sendMessage(message, loggedUser.getUsername(), currentEvent.getId());
+                messageField.setText("");
+            }
+        });
+
+        class sendMessageListener implements KeyListener {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // Check if the Enter key was pressed
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    sendMessageButton.doClick();
+                }
+            }
+        }
+
+        sendMessageButton.addKeyListener(new sendMessageListener());
     }
+
+
+    private void populateChatList(int eventId) {
+
+        DefaultListModel<Message> chatListModel = new DefaultListModel<>();
+
+        chatList.setModel(chatListModel);
+        chatList.setCellRenderer(new ChatCellRenderer(loggedUser.getUsername()));
+        chatList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
+
+        chatList.clearSelection();
+        // Retrieve the messages from the chat table
+        List<Message> messages = retrieveMessages(eventId);
+
+        // Populate the chat list with the messages
+        for (Message message : messages) {
+            chatListModel.addElement(message);
+        }
+
+      //  populateChatList(eventId);
+    }
+
+    private List<Message> retrieveMessages(int eventId) {
+        List<Message> messagesList = new ArrayList<>();
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving messages from the chat table
+            String sql = "SELECT * FROM chat" + eventId + " ORDER BY date";
+            PreparedStatement statement = conn.prepareStatement(sql);
+
+            // Execute the query to retrieve messages
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve messages
+            while (resultSet.next()) {
+                String message = resultSet.getString("message");
+                String sender = resultSet.getString("sender");
+                Timestamp timestamp = resultSet.getTimestamp("date");
+
+                LocalDateTime date = timestamp.toLocalDateTime(); // Convert Timestamp to LocalDateTime
+
+                LocalDateTime currentDateTime = LocalDateTime.now(); // Use LocalDateTime instead of Calendar
+                Message messageObj = new Message(message, sender, date);
+                messagesList.add(messageObj);
+
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return messagesList;
+    }
+
+
+
+    private void sendMessage(String message, String sender, int eventId) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Construct the table name
+            String tableName = "chat" + eventId;
+
+            // Get the current date and time
+            LocalDateTime currentDate = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = currentDate.format(formatter);
+
+            // Prepare the SQL statement for inserting the message
+            String insertMessageSQL = "INSERT INTO " + tableName + " (sender, message, date) VALUES (?, ?, ?)";
+            PreparedStatement insertMessageStatement = conn.prepareStatement(insertMessageSQL);
+            insertMessageStatement.setString(1, sender);
+            insertMessageStatement.setString(2, message);
+            insertMessageStatement.setString(3, formattedDate);
+            insertMessageStatement.executeUpdate();
+
+            insertMessageStatement.close();
+            conn.close();
+
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
+    private void updateEventName(String eventName, int event_id) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            String updateSql = "UPDATE events SET name = ? WHERE id = ?";
+            PreparedStatement updateStatement = conn.prepareStatement(updateSql);
+            updateStatement.setString(1, eventName);
+            updateStatement.setInt(2, event_id);
+            updateStatement.executeUpdate();
+            updateStatement.close();
+
+            JOptionPane.showMessageDialog(adminEditPanel, "Name update successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            adminEditPanel.requestFocusInWindow();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+        private boolean isEventNameTaken(String eventName, int organizer_id) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "")) {
+            String sql = "SELECT COUNT(*) FROM events WHERE name = ? AND organizer_id = ?";
+            try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                statement.setString(1, eventName);
+                statement.setInt(2, organizer_id);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        int count = resultSet.getInt(1);
+                        return count > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void updateEventMemberRelation(int userId, int eventId, String newRelation) {
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            String selectSql = "SELECT relation FROM event_members WHERE user_id = ? AND event_id = ?";
+            PreparedStatement selectStatement = conn.prepareStatement(selectSql);
+            selectStatement.setInt(1, userId);
+            selectStatement.setInt(2, eventId);
+            ResultSet resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String currentRelation = resultSet.getString("relation");
+
+                if (currentRelation.equals("participant")) {
+                    String updateSql = "UPDATE event_members SET relation = ? WHERE user_id = ? AND event_id = ?";
+                    PreparedStatement updateStatement = conn.prepareStatement(updateSql);
+                    updateStatement.setString(1, newRelation);
+                    updateStatement.setInt(2, userId);
+                    updateStatement.setInt(3, eventId);
+                    updateStatement.executeUpdate();
+                    updateStatement.close();
+
+                    if (newRelation.equals("kicked")) {
+                        JOptionPane.showMessageDialog(adminEditPanel, "User has been kicked from the event.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        kickField.setText("");
+                        adminEditPanel.requestFocusInWindow();
+                    } else if (newRelation.equals("banned")) {
+                        JOptionPane.showMessageDialog(adminEditPanel, "User has been banned from the event.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        banField.setText("");
+                        adminEditPanel.requestFocusInWindow();
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(adminEditPanel, "User is not a member of this event.", "Error", JOptionPane.ERROR_MESSAGE);
+                    adminEditPanel.requestFocusInWindow();
+                }
+            } else {
+                JOptionPane.showMessageDialog(adminEditPanel, "User is not a member of this event.", "Error", JOptionPane.ERROR_MESSAGE);
+                adminEditPanel.requestFocusInWindow();
+            }
+
+            resultSet.close();
+            selectStatement.close();
+            conn.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
 
     private int retrieveUserIdByUsername(String username) {
@@ -347,6 +653,25 @@ public class EventForm extends JFrame {
                         invitePanel.requestFocusInWindow();
                         return;
                     }
+                    case "banned" -> {
+                        JOptionPane.showMessageDialog(invitePanel, "The user has been banned from this event.", "User banned", JOptionPane.INFORMATION_MESSAGE);
+                        invitePanel.requestFocusInWindow();
+                        return;
+                    }
+                    case "kicked" -> {
+                        int confirm = JOptionPane.showConfirmDialog(invitePanel, "The user has been kicked from this event. Do you want to send invite anyway?", "User banned", JOptionPane.YES_NO_OPTION);
+                        if (confirm == JOptionPane.NO_OPTION) {
+                            return;
+                        }
+                        else if(confirm == JOptionPane.YES_OPTION) {
+                            String deleteSql = "DELETE FROM event_members WHERE user_id = ? AND event_id = ? AND relation = 'kicked'";
+                            PreparedStatement deleteStatement = conn.prepareStatement(deleteSql);
+                            deleteStatement.setInt(1, userId);
+                            deleteStatement.setInt(2, eventId);
+                            deleteStatement.executeUpdate();
+                            deleteStatement.close();
+                        }
+                    }
                     case "request" -> {
                         // Delete the existing request row
                         String deleteSql = "DELETE FROM event_members WHERE user_id = ? AND event_id = ? AND relation = 'request'";
@@ -375,13 +700,11 @@ public class EventForm extends JFrame {
             conn.close();
 
             JOptionPane.showMessageDialog(invitePanel, "Member invited successfully!", "Invitation Sent", JOptionPane.INFORMATION_MESSAGE);
+            invitePanel.requestFocusInWindow();
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
-
-
-
 
     public static void openEventForm(Event event) {
         if (lastOpenedForm != null) {

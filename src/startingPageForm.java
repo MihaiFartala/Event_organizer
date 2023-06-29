@@ -53,7 +53,7 @@ public class startingPageForm {
     private JScrollPane memberScrollPane;
     private JScrollPane ownScrollPane;
     private JPanel enterPanel;
-    private JPanel seachPanel;
+    private JPanel searchPanel;
     private JScrollPane searchPane;
     private JTextField enterCodeField;
     private JButton joinEventButton;
@@ -117,6 +117,7 @@ public class startingPageForm {
         searchPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
         invitesPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
         requestsPane.getVerticalScrollBar().setUI(new ScrollBarStyle());
+
 
 
         joinButton.addActionListener(new ActionListener() {
@@ -604,6 +605,7 @@ public class startingPageForm {
                 int eventId = retrieveEventIdByJoinCode(code);
                 if (eventId != -1) {
                     joinEvent(eventId, loggedUser.getId());
+                    enterCodeField.setText("");
                 } else {
                     JOptionPane.showMessageDialog(joinPanel, "Event does not exist!", "Password error", JOptionPane.INFORMATION_MESSAGE);
                     joinPanel.requestFocusInWindow();
@@ -922,12 +924,39 @@ public class startingPageForm {
                         if (confirm == JOptionPane.YES_OPTION) {
                             acceptInvite(selectedEvent.getId(), user_id);
                             populateInviteList(user_id);
+                        } else if (confirm == JOptionPane.NO_OPTION){
+                            deleteInvite(selectedEvent.getId(), user_id);
+                            JOptionPane.showMessageDialog(profilePanel, "You have declined the invitation.", "Invitation deleted", JOptionPane.INFORMATION_MESSAGE);
+                            populateInviteList(user_id);
+                            profilePanel.requestFocusInWindow();
                         }
                     }
                 }
             }
         });
 
+    }
+
+
+    private void deleteInvite(int eventId, int userId) {
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement to delete the row
+            String sql = "DELETE FROM event_members WHERE event_id = ? AND user_id = ? AND relation = 'invited'";
+            PreparedStatement deleteStatement = conn.prepareStatement(sql);
+            deleteStatement.setInt(1, eventId);
+            deleteStatement.setInt(2, userId);
+
+            deleteStatement.executeUpdate();
+
+
+            deleteStatement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void acceptInvite(int eventId, int userId) {
@@ -1029,6 +1058,16 @@ public class startingPageForm {
                     case "request" -> {
                         cancelRequest(event_id, user_id);
                         joinPanel.requestFocusInWindow();
+                    }
+                    case "kicked" -> {
+                        JOptionPane.showMessageDialog(profilePanel, "You have been kicked from this event. You can join again via invite only!", "Kicked", JOptionPane.INFORMATION_MESSAGE);
+                        joinPanel.requestFocusInWindow();
+                        return;
+                    }
+                    case "banned" -> {
+                        JOptionPane.showMessageDialog(profilePanel, "You have been banned from this event.", "Banned", JOptionPane.INFORMATION_MESSAGE);
+                        joinPanel.requestFocusInWindow();
+                        return;
                     }
                 }
             }
