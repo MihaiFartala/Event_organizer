@@ -49,11 +49,11 @@ public class MemberCellRenderer extends JPanel implements ListCellRenderer<Event
         if (value.getPhoneNumber() != null) {
             phoneNumberLabel.setText("<html><b>Phone:</b> " + value.getPhoneNumber() + "</html>");
         } else {
-            phoneNumberLabel.setText("");
+            phoneNumberLabel.setText("<html><b>Phone: -</b> ");
         }
 
         if (value.getRelation() == null || value.getRelation().isEmpty()) {
-            relationLabel.setText("");
+            relationLabel.setText("<html><b>Role: -</b> ");
         } else {
             relationLabel.setText("<html><b>Role:</b> " + value.getRelation() + "</html>");
         }
