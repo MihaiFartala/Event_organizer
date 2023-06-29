@@ -59,6 +59,9 @@ public class EventForm extends JFrame {
     private JTextField messageField;
     private JButton sendMessageButton;
     private JList<Message> chatList;
+    private JList<String> acceptList;
+    private JPanel acceptPanel;
+    private JScrollPane acceptPane;
     private static EventForm lastOpenedForm;
 
     private final Event selectedEvent;
@@ -165,6 +168,10 @@ public class EventForm extends JFrame {
                 // Extract the time part from the currentDate
                 LocalTime time = currentDate.toLocalTime();
                 eventTimeSpinner.setValue(Date.from(time.atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+
+
+                populateAcceptList(currentEvent.getId());
+
             }
         });
 
@@ -430,6 +437,141 @@ public class EventForm extends JFrame {
         }
 
       //  populateChatList(eventId);
+    }
+
+    private void populateAcceptList(int eventId) {
+
+        DefaultListModel<String> acceptListModel = new DefaultListModel<>();
+
+        acceptList.setModel(acceptListModel);
+        acceptList.setCellRenderer(new AcceptCellRenderer());
+        acceptList.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
+
+        acceptList.clearSelection();
+
+        List<String> requests = retrieveRequestsToJoin(eventId);
+
+
+        for (String requester : requests) {
+            acceptListModel.addElement(requester);
+        }
+
+        acceptList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int selectedIndex = acceptList.getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        String selectedUser = acceptList.getModel().getElementAt(selectedIndex);
+
+                        int option = JOptionPane.showConfirmDialog(null, "Do you want to accept the user?", "Confirmation", JOptionPane.YES_NO_OPTION);
+
+                        if (option == JOptionPane.YES_OPTION) {
+                            // Call the function to let the user join
+                            acceptUser(selectedUser,  eventId);
+                        }
+                    }
+                }
+            }
+        });
+
+
+
+    }
+
+
+    private void acceptUser(String username, int event_id) {
+
+
+        try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving event_ids
+            String sql = "SELECT id FROM users WHERE username = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, username);
+
+
+            // Execute the query to get event_ids
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve events for each event_id
+            while (resultSet.next()) {
+                int userId = resultSet.getInt("id");
+
+                // Prepare the SQL statement for retrieving event details
+
+                String updateSql = "UPDATE event_members SET relation = ? WHERE user_id = ? AND event_id = ?";
+                PreparedStatement updateStatement = conn.prepareStatement(updateSql);
+                updateStatement.setString(1, "participant");
+                updateStatement.setInt(2, userId);
+                updateStatement.setInt(3, event_id);
+                updateStatement.executeUpdate();
+                updateStatement.close();
+
+                JOptionPane.showMessageDialog(adminEditPanel, "User accepted!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                populateAcceptList(event_id);
+                adminEditPanel.requestFocusInWindow();
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private List<String> retrieveRequestsToJoin(int event_id) {
+        List<String> userNames = new ArrayList<>();
+
+               try {
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
+
+            // Prepare the SQL statement for retrieving event_ids
+            String sql = "SELECT user_id FROM event_members WHERE event_id = ? AND relation = 'request'";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, event_id);
+
+
+            // Execute the query to get event_ids
+            ResultSet resultSet = statement.executeQuery();
+
+            // Iterate through the result set and retrieve events for each event_id
+            while (resultSet.next()) {
+                int userId = resultSet.getInt("user_id");
+
+                // Prepare the SQL statement for retrieving event details
+                String eventSQL = "SELECT username FROM users WHERE id = ?";
+                PreparedStatement eventStatement = conn.prepareStatement(eventSQL);
+                eventStatement.setInt(1, userId);
+
+                // Execute the query to get event details
+                ResultSet eventResultSet = eventStatement.executeQuery();
+
+                if (eventResultSet.next()) {
+                    String username = eventResultSet.getString("username");
+
+
+                    userNames.add(username);
+                }
+
+                // Close the event result set and statement
+                eventResultSet.close();
+                eventStatement.close();
+            }
+
+            // Close the result set, statement, and connection
+            resultSet.close();
+            statement.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return userNames;
     }
 
     private List<Message> retrieveMessages(int eventId) {
