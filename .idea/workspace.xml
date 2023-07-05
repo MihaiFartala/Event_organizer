@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="Hi" />
+    <list default="true" id="4ec54522-9e2d-4c48-bc28-1fbf5568ba90" name="Changes" comment="Hi">
+      <change afterPath="$PROJECT_DIR$/src/AcceptCellRenderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventForm.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/EventForm.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EventForm.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -152,14 +157,7 @@
       <option name="project" value="LOCAL" />
       <updated>1688040531796</updated>
     </task>
-    <task id="LOCAL-00009" summary="Hi">
-      <created>1688051085458</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1688051085459</updated>
-    </task>
-    <option name="localTasksCounter" value="10" />
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
