@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -11,7 +10,9 @@ public class ChatCellRenderer extends JPanel implements ListCellRenderer<Message
     private final JLabel messageLabel;
     private final JLabel dateLabel;
 
+
     public ChatCellRenderer() {
+
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
@@ -20,7 +21,6 @@ public class ChatCellRenderer extends JPanel implements ListCellRenderer<Message
 
         senderLabel = new JLabel();
         senderLabel.setFont(senderLabel.getFont().deriveFont(Font.PLAIN, 10f));
-
 
         dateLabel = new JLabel();
         dateLabel.setFont(dateLabel.getFont().deriveFont(Font.PLAIN, 12f));
@@ -37,6 +37,7 @@ public class ChatCellRenderer extends JPanel implements ListCellRenderer<Message
     @Override
     public Component getListCellRendererComponent(JList<? extends Message> list, Message value, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
+
         senderLabel.setText("Sent by: " + value.getSender());
         messageLabel.setText(value.getMessage());
 

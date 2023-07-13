@@ -732,7 +732,7 @@ public class startingPageForm {
             Matcher hasSpecial = special.matcher(password);
 
             if (!(hasLowercase.find() && hasDigit.find() && hasSpecial.find() && hasUppercase.find())) {
-                JOptionPane.showMessageDialog(this.profilePanel, "The password new must be a combination of uppercase letters, lowercase letters, numbers and symbols", "Password error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this.profilePanel, "The new password must be a combination of uppercase letters, lowercase letters, numbers and symbols", "Password error", JOptionPane.WARNING_MESSAGE);
                 profilePanel.requestFocusInWindow();
                 return false;
             }
@@ -749,7 +749,7 @@ public class startingPageForm {
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/eventorganizer", "root", "");
 
             // Prepare the SQL statement for retrieving event_ids
-            String sql = "SELECT event_id FROM event_members WHERE user_id = ? AND relation NOT IN ('creator', 'request', 'invited')";
+            String sql = "SELECT event_id FROM event_members WHERE user_id = ? AND relation NOT IN ('creator', 'request', 'invited', 'banned', 'kicked')";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setInt(1, id);
 
